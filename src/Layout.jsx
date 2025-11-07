@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { LayoutDashboard, Users, TrendingUp, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, TrendingUp, BarChart3, Target, Brain, Upload, Shield, FileText, HelpCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,54 +18,23 @@ import {
 } from "@/components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-const navigationItems = [
-  {
-    title: "Dashboard",
-    url: createPageUrl("Dashboard"),
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Players",
-    url: createPageUrl("Players"),
-    icon: Users,
-  },
-  {
-    title: "Match Analysis",
-    url: createPageUrl("MatchAnalysis"),
-    icon: TrendingUp,
-  },
-  {
-    title: "Predictions",
-    url: createPageUrl("Predictions"),
-    icon: BarChart3,
-  },
-];
-
-const adminItems = [
-  {
-    title: "Bulk Import",
-    url: createPageUrl("BulkImport"),
-    icon: ({ className }) => <span className={`text-sm ${className}`}>📥</span>,
-  },
-  {
-    title: "Compliance",
-    url: createPageUrl("Compliance"),
-    icon: ({ className }) => <span className={`text-sm ${className}`}>🛡️</span>,
-  },
-  {
-    title: "Data Quality",
-    url: createPageUrl("DataQuality"),
-    icon: ({ className }) => <span className={`text-sm ${className}`}>✓</span>,
-  },
-  {
-    title: "Help",
-    url: createPageUrl("Help"),
-    icon: ({ className }) => <span className={`text-sm ${className}`}>❓</span>,
-  },
+const navItems = [
+  { name: "Dashboard", icon: LayoutDashboard, path: "Dashboard", group: "navigation" },
+  { name: "Players", icon: Users, path: "Players", group: "navigation" },
+  { name: "Match Analysis", icon: TrendingUp, path: "MatchAnalysis", group: "navigation" },
+  { name: "Predictions", icon: Target, path: "Predictions", group: "navigation" },
+  { name: "ML Dashboard", icon: Brain, path: "MLDashboard", group: "navigation" },
+  { name: "Bulk Import", icon: Upload, path: "BulkImport", group: "admin" },
+  { name: "Data Quality", icon: Shield, path: "DataQuality", group: "admin" },
+  { name: "Compliance", icon: FileText, path: "Compliance", group: "admin" },
+  { name: "Help", icon: HelpCircle, path: "Help", group: "admin" },
 ];
 
 export default function Layout({ children }) {
   const location = useLocation();
+
+  const navigationGroupItems = navItems.filter(item => item.group === "navigation");
+  const adminGroupItems = navItems.filter(item => item.group === "admin");
 
   return (
     <ErrorBoundary>
@@ -91,21 +60,24 @@ export default function Layout({ children }) {
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {navigationItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton 
-                          asChild 
-                          className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 rounded-xl mb-1 ${
-                            location.pathname === item.url ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-600'
-                          }`}
-                        >
-                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
-                            <item.icon className="w-5 h-5" />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
+                    {navigationGroupItems.map((item) => {
+                      const itemUrl = createPageUrl(item.path);
+                      return (
+                        <SidebarMenuItem key={item.name}>
+                          <SidebarMenuButton 
+                            asChild 
+                            className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 rounded-xl mb-1 ${
+                              location.pathname === itemUrl ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-600'
+                            }`}
+                          >
+                            <Link to={itemUrl} className="flex items-center gap-3 px-3 py-2.5">
+                              <item.icon className="w-5 h-5" />
+                              <span>{item.name}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
@@ -117,21 +89,24 @@ export default function Layout({ children }) {
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {adminItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton 
-                          asChild 
-                          className={`hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1 ${
-                            location.pathname === item.url ? 'bg-purple-50 text-purple-700 font-medium' : 'text-slate-600'
-                          }`}
-                        >
-                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
-                            <item.icon className="w-5 h-5" />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
+                    {adminGroupItems.map((item) => {
+                      const itemUrl = createPageUrl(item.path);
+                      return (
+                        <SidebarMenuItem key={item.name}>
+                          <SidebarMenuButton 
+                            asChild 
+                            className={`hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1 ${
+                              location.pathname === itemUrl ? 'bg-purple-50 text-purple-700 font-medium' : 'text-slate-600'
+                            }`}
+                          >
+                            <Link to={itemUrl} className="flex items-center gap-3 px-3 py-2.5">
+                              <item.icon className="w-5 h-5" />
+                              <span>{item.name}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
