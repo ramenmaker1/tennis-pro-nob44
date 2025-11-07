@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -216,22 +217,36 @@ function MatchRow({ match, players }) {
 
 function PredictionRow({ prediction, matches, players }) {
   const match = matches.find(m => m.id === prediction.match_id);
+  const player1 = players.find(p => p.id === match?.player1_id);
+  const player2 = players.find(p => p.id === match?.player2_id);
   const winner = players.find(p => p.id === prediction.predicted_winner_id);
 
   return (
     <div className="p-3 rounded-lg border border-slate-200 hover:border-emerald-300 transition-colors">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="font-medium text-slate-900">
-            {winner?.name || 'Unknown'} predicted to win
+            {player1?.name || player1?.display_name || 'Player 1'} vs {player2?.name || player2?.display_name || 'Player 2'}
           </div>
           <div className="text-sm text-slate-500 mt-1">
-            Confidence: {prediction.confidence_level}
+            Predicted Winner: <span className="font-semibold text-emerald-600">{winner?.name || winner?.display_name}</span>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600">
+          {prediction.confidence_level || 'medium'}
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <div className="text-xs text-slate-500">{player1?.name || player1?.display_name}</div>
           <div className="text-lg font-bold text-emerald-600">
             {prediction.player1_win_probability?.toFixed(0)}%
+          </div>
+        </div>
+        <div className="flex-1 text-right">
+          <div className="text-xs text-slate-500">{player2?.name || player2?.display_name}</div>
+          <div className="text-lg font-bold text-orange-600">
+            {prediction.player2_win_probability?.toFixed(0)}%
           </div>
         </div>
       </div>
