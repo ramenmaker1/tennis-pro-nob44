@@ -1,4 +1,3 @@
-
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,8 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { TrendingUp, Users, BarChart3, Plus, Calendar, Trophy } from "lucide-react";
+import { TrendingUp, Users, BarChart3, Plus, Calendar, Trophy, Target, Activity } from "lucide-react";
 import { format } from "date-fns";
+import ModelPerformanceChart from "../components/analytics/ModelPerformanceChart";
+import RecentPredictionsTable from "../components/analytics/RecentPredictionsTable";
+import {
+  getAccuracyByModel,
+  getPredictionCountsByModel,
+  calculateOverallAccuracy,
+  getPredictionsByConfidence,
+  getRecentTrends,
+} from "../utils/dashboardStats";
 
 export default function Dashboard() {
   const { data: players } = useQuery({
@@ -28,15 +36,18 @@ export default function Dashboard() {
     initialData: [],
   });
 
+  // Calculate analytics
+  const accuracyByModel = getAccuracyByModel(predictions);
+  const predictionCounts = getPredictionCountsByModel(predictions);
+  const overallAccuracy = calculateOverallAccuracy(predictions);
+  const confidenceCounts = getPredictionsByConfidence(predictions);
+  const recentTrends = getRecentTrends(predictions);
+  
   const upcomingMatches = matches.filter(m => m.status === 'scheduled' || m.status === 'upcoming').slice(0, 5);
-  const recentPredictions = predictions.slice(0, 5);
-
-  // Calculate accuracy stats
+  const recentPredictions = predictions.slice(0, 10);
+  
   const completedPredictions = predictions.filter(p => p.actual_winner_id);
   const accurateCount = completedPredictions.filter(p => p.was_correct === true).length;
-  const accuracyRate = completedPredictions.length > 0 
-    ? Math.round((accurateCount / completedPredictions.length) * 100)
-    : 0;
 
   return (
     <div className="p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
@@ -54,34 +65,84 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Total Players"
           value={players.length}
+          subtitle={`${players.filter(p => p.current_rank && p.current_rank <= 100).length} in Top 100`}
           icon={Users}
           gradient="from-blue-500 to-blue-600"
         />
         <StatsCard
-          title="Total Matches"
-          value={matches.length}
-          icon={Trophy}
+          title="Total Predictions"
+          value={predictions.length}
+          subtitle={`${recentTrends.total} in last 30 days`}
+          icon={BarChart3}
           gradient="from-emerald-500 to-teal-600"
         />
         <StatsCard
-          title="Predictions Made"
-          value={predictions.length}
-          icon={BarChart3}
+          title="Overall Accuracy"
+          value={completedPredictions.length > 0 ? `${overallAccuracy.toFixed(1)}%` : 'N/A'}
+          subtitle={completedPredictions.length > 0 ? `${accurateCount}/${completedPredictions.length} correct` : 'No completed matches'}
+          icon={Target}
           gradient="from-orange-500 to-red-500"
         />
         <StatsCard
-          title="Accuracy Rate"
-          value={completedPredictions.length > 0 ? `${accuracyRate}%` : 'N/A'}
-          subtitle={completedPredictions.length > 0 ? `${accurateCount}/${completedPredictions.length} correct` : 'No completed matches'}
-          icon={Calendar}
+          title="Recent Trend"
+          value={recentTrends.completed > 0 ? `${recentTrends.accuracy.toFixed(1)}%` : 'N/A'}
+          subtitle={`${recentTrends.completed} completed recently`}
+          icon={Activity}
           gradient="from-purple-500 to-pink-500"
         />
       </div>
+
+      {/* Confidence Distribution */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-slate-500">High Confidence</div>
+              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+            </div>
+            <div className="text-2xl font-bold text-slate-900">{confidenceCounts.high}</div>
+            <div className="text-xs text-slate-500 mt-1">predictions</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-slate-500">Medium Confidence</div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            </div>
+            <div className="text-2xl font-bold text-slate-900">{confidenceCounts.medium}</div>
+            <div className="text-xs text-slate-500 mt-1">predictions</div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-slate-500">Low Confidence</div>
+              <div className="w-3 h-3 rounded-full bg-slate-400"></div>
+            </div>
+            <div className="text-2xl font-bold text-slate-900">{confidenceCounts.low}</div>
+            <div className="text-xs text-slate-500 mt-1">predictions</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Model Performance Chart */}
+      <ModelPerformanceChart 
+        accuracyByModel={accuracyByModel}
+        predictionCounts={predictionCounts}
+      />
+
+      {/* Recent Predictions Table */}
+      <RecentPredictionsTable
+        predictions={recentPredictions}
+        matches={matches}
+        players={players}
+      />
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
@@ -114,69 +175,44 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Predictions */}
+        {/* Quick Actions */}
         <Card className="shadow-md">
           <CardHeader className="border-b border-slate-200">
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
-              Recent Predictions
-            </CardTitle>
+            <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            {recentPredictions.length > 0 ? (
-              <div className="space-y-4">
-                {recentPredictions.map((prediction) => (
-                  <PredictionRow 
-                    key={prediction.id} 
-                    prediction={prediction} 
-                    matches={matches}
-                    players={players}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-slate-500">
-                <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="mb-2">No predictions yet</p>
-                <Link to={createPageUrl("MatchAnalysis")}>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Make Your First Prediction
-                  </Button>
-                </Link>
-              </div>
-            )}
+            <div className="grid gap-4">
+              <Link to={createPageUrl("Players")} className="block">
+                <Button variant="outline" className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+                  <Users className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">Manage Players</div>
+                    <div className="text-xs text-slate-500">{players.length} players in database</div>
+                  </div>
+                </Button>
+              </Link>
+              <Link to={createPageUrl("MatchAnalysis")} className="block">
+                <Button variant="outline" className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+                  <TrendingUp className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">Analyze Match</div>
+                    <div className="text-xs text-slate-500">Generate new predictions</div>
+                  </div>
+                </Button>
+              </Link>
+              <Link to={createPageUrl("Predictions")} className="block">
+                <Button variant="outline" className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+                  <BarChart3 className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">View All Predictions</div>
+                    <div className="text-xs text-slate-500">{predictions.length} total predictions</div>
+                  </div>
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
-            <Link to={createPageUrl("Players")} className="block">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
-                <Users className="w-6 h-6" />
-                <span className="text-sm">Manage Players</span>
-              </Button>
-            </Link>
-            <Link to={createPageUrl("MatchAnalysis")} className="block">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
-                <TrendingUp className="w-6 h-6" />
-                <span className="text-sm">Analyze Match</span>
-              </Button>
-            </Link>
-            <Link to={createPageUrl("Predictions")} className="block">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
-                <BarChart3 className="w-6 h-6" />
-                <span className="text-sm">View Predictions</span>
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -211,54 +247,15 @@ function MatchRow({ match, players }) {
     <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-emerald-300 transition-colors">
       <div className="flex-1">
         <div className="font-medium text-slate-900">
-          {player1?.name || 'Player 1'} vs {player2?.name || 'Player 2'}
+          {player1?.display_name || player1?.name || 'Player 1'} vs {player2?.display_name || player2?.name || 'Player 2'}
         </div>
         <div className="text-sm text-slate-500 mt-1">
-          {match.tournament} • {match.surface}
+          {match.tournament_name || 'Tournament'} • {match.surface}
         </div>
       </div>
       <div className="text-right">
         <div className="text-sm font-medium text-slate-700">
-          {match.match_date && format(new Date(match.match_date), "MMM d")}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PredictionRow({ prediction, matches, players }) {
-  const match = matches.find(m => m.id === prediction.match_id);
-  const player1 = players.find(p => p.id === match?.player1_id);
-  const player2 = players.find(p => p.id === match?.player2_id);
-  const winner = players.find(p => p.id === prediction.predicted_winner_id);
-
-  return (
-    <div className="p-3 rounded-lg border border-slate-200 hover:border-emerald-300 transition-colors">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
-          <div className="font-medium text-slate-900">
-            {player1?.name || player1?.display_name || 'Player 1'} vs {player2?.name || player2?.display_name || 'Player 2'}
-          </div>
-          <div className="text-sm text-slate-500 mt-1">
-            Predicted Winner: <span className="font-semibold text-emerald-600">{winner?.name || winner?.display_name}</span>
-          </div>
-        </div>
-        <div className="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600">
-          {prediction.confidence_level || 'medium'}
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="text-xs text-slate-500">{player1?.name || player1?.display_name}</div>
-          <div className="text-lg font-bold text-emerald-600">
-            {prediction.player1_win_probability?.toFixed(0)}%
-          </div>
-        </div>
-        <div className="flex-1 text-right">
-          <div className="text-xs text-slate-500">{player2?.name || player2?.display_name}</div>
-          <div className="text-lg font-bold text-orange-600">
-            {prediction.player2_win_probability?.toFixed(0)}%
-          </div>
+          {match.utc_start && format(new Date(match.utc_start), "MMM d")}
         </div>
       </div>
     </div>
