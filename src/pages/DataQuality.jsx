@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -45,7 +46,7 @@ export default function DataQuality() {
     return Math.round((completed / fields.length) * 100);
   };
 
-  const incompleteP layers = players
+  const incompletePlayers = players
     .map(p => ({ ...p, completeness: calculateCompleteness(p) }))
     .filter(p => p.completeness < 70)
     .sort((a, b) => a.completeness - b.completeness)
