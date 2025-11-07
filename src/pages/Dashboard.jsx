@@ -18,7 +18,7 @@ export default function Dashboard() {
 
   const { data: matches } = useQuery({
     queryKey: ['matches'],
-    queryFn: () => base44.entities.Match.list('-match_date'),
+    queryFn: () => base44.entities.Match.list('-created_date'),
     initialData: [],
   });
 
@@ -28,8 +28,15 @@ export default function Dashboard() {
     initialData: [],
   });
 
-  const upcomingMatches = matches.filter(m => m.status === 'upcoming').slice(0, 5);
+  const upcomingMatches = matches.filter(m => m.status === 'scheduled' || m.status === 'upcoming').slice(0, 5);
   const recentPredictions = predictions.slice(0, 5);
+
+  // Calculate accuracy stats
+  const completedPredictions = predictions.filter(p => p.actual_winner_id);
+  const accurateCount = completedPredictions.filter(p => p.was_correct === true).length;
+  const accuracyRate = completedPredictions.length > 0 
+    ? Math.round((accurateCount / completedPredictions.length) * 100)
+    : 0;
 
   return (
     <div className="p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
@@ -40,7 +47,7 @@ export default function Dashboard() {
           <p className="text-slate-500 mt-2">Advanced probability modeling for tennis predictions</p>
         </div>
         <Link to={createPageUrl("MatchAnalysis")}>
-          <Button className="bg-emerald-600 hover:bg-emerald-700">
+          <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-sm">
             <Plus className="w-4 h-4 mr-2" />
             New Analysis
           </Button>
@@ -68,8 +75,9 @@ export default function Dashboard() {
           gradient="from-orange-500 to-red-500"
         />
         <StatsCard
-          title="Upcoming Matches"
-          value={upcomingMatches.length}
+          title="Accuracy Rate"
+          value={completedPredictions.length > 0 ? `${accuracyRate}%` : 'N/A'}
+          subtitle={completedPredictions.length > 0 ? `${accurateCount}/${completedPredictions.length} correct` : 'No completed matches'}
           icon={Calendar}
           gradient="from-purple-500 to-pink-500"
         />
@@ -82,7 +90,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-slate-200">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-emerald-600" />
-              Upcoming Matches
+              Scheduled Matches
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -95,9 +103,9 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 text-slate-500">
                 <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No upcoming matches</p>
+                <p className="mb-2">No scheduled matches</p>
                 <Link to={createPageUrl("MatchAnalysis")}>
-                  <Button variant="outline" className="mt-4">
+                  <Button variant="outline" size="sm" className="mt-2">
                     Create Match Analysis
                   </Button>
                 </Link>
@@ -129,9 +137,9 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 text-slate-500">
                 <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No predictions yet</p>
+                <p className="mb-2">No predictions yet</p>
                 <Link to={createPageUrl("MatchAnalysis")}>
-                  <Button variant="outline" className="mt-4">
+                  <Button variant="outline" size="sm" className="mt-2">
                     Make Your First Prediction
                   </Button>
                 </Link>
@@ -149,21 +157,21 @@ export default function Dashboard() {
         <CardContent>
           <div className="grid md:grid-cols-3 gap-4">
             <Link to={createPageUrl("Players")} className="block">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
                 <Users className="w-6 h-6" />
-                Manage Players
+                <span className="text-sm">Manage Players</span>
               </Button>
             </Link>
             <Link to={createPageUrl("MatchAnalysis")} className="block">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
                 <TrendingUp className="w-6 h-6" />
-                Analyze Match
+                <span className="text-sm">Analyze Match</span>
               </Button>
             </Link>
             <Link to={createPageUrl("Predictions")} className="block">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
                 <BarChart3 className="w-6 h-6" />
-                View All Predictions
+                <span className="text-sm">View Predictions</span>
               </Button>
             </Link>
           </div>
@@ -173,7 +181,7 @@ export default function Dashboard() {
   );
 }
 
-function StatsCard({ title, value, icon: Icon, gradient }) {
+function StatsCard({ title, value, subtitle, icon: Icon, gradient }) {
   return (
     <Card className="relative overflow-hidden shadow-md hover:shadow-lg transition-shadow">
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 rounded-full transform translate-x-12 -translate-y-12`} />
@@ -182,8 +190,11 @@ function StatsCard({ title, value, icon: Icon, gradient }) {
           <div>
             <p className="text-sm font-medium text-slate-500">{title}</p>
             <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+            {subtitle && (
+              <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+            )}
           </div>
-          <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient}`}>
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-sm`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
         </div>

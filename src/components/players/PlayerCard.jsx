@@ -1,20 +1,32 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Target, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, Target, Zap, Edit, Eye } from "lucide-react";
+import { calculateDataCompleteness, getDataQualityBadge } from "../../utils/sampleData";
 
-export default function PlayerCard({ player, onClick }) {
+export default function PlayerCard({ player, onClick, onEdit }) {
   const age = player.birth_year ? new Date().getFullYear() - player.birth_year : null;
+  const completeness = calculateDataCompleteness(player);
+  const qualityBadge = getDataQualityBadge(completeness);
   
   return (
     <Card 
-      className="hover:shadow-lg transition-all duration-300 cursor-pointer bg-white border-slate-200 group"
-      onClick={onClick}
+      className="hover:shadow-lg transition-all duration-300 bg-white border-slate-200 group relative overflow-hidden"
     >
+      {/* Data Quality Badge */}
+      <div className="absolute top-3 right-3 z-10">
+        <Badge className={`${qualityBadge.color} text-xs font-medium`}>
+          {qualityBadge.icon} {completeness}%
+        </Badge>
+      </div>
+
       <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden">
+        <div className="flex items-start gap-4 mb-4">
+          <div 
+            className="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+            onClick={onClick}
+          >
             {player.photo_url ? (
               <img src={player.photo_url} alt={player.display_name || player.name} className="w-full h-full object-cover" />
             ) : (
@@ -25,7 +37,10 @@ export default function PlayerCard({ player, onClick }) {
           </div>
           
           <div className="flex-1">
-            <h3 className="font-bold text-slate-900 text-lg group-hover:text-emerald-600 transition-colors">
+            <h3 
+              className="font-bold text-slate-900 text-lg group-hover:text-emerald-600 transition-colors cursor-pointer"
+              onClick={onClick}
+            >
               {player.display_name || player.name}
             </h3>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -49,7 +64,7 @@ export default function PlayerCard({ player, onClick }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-4">
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="text-center p-2 rounded-lg bg-emerald-50">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Zap className="w-3 h-3 text-emerald-600" />
@@ -82,13 +97,43 @@ export default function PlayerCard({ player, onClick }) {
         </div>
 
         {player.elo_rating && (
-          <div className="mt-3 pt-3 border-t border-slate-200">
+          <div className="mb-4 pb-4 border-b border-slate-200">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-500">ELO Rating</span>
               <span className="font-semibold text-slate-900">{player.elo_rating}</span>
             </div>
           </div>
         )}
+
+        {/* Quick Actions */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick();
+            }}
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            View Stats
+          </Button>
+          {onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(player);
+              }}
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Edit
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
