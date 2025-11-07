@@ -5,6 +5,7 @@ import Predictions from './pages/Predictions';
 import BulkImport from './pages/BulkImport';
 import Compliance from './pages/Compliance';
 import DataQuality from './pages/DataQuality';
+import Help from './pages/Help';
 import Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "BulkImport": BulkImport,
     "Compliance": Compliance,
     "DataQuality": DataQuality,
+    "Help": Help,
 }
 
 export const pagesConfig = {
