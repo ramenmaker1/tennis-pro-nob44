@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -39,6 +40,24 @@ const navigationItems = [
   },
 ];
 
+const adminItems = [
+  {
+    title: "Bulk Import",
+    url: createPageUrl("BulkImport"),
+    icon: ({ className }) => <span className={`text-sm ${className}`}>📥</span>,
+  },
+  {
+    title: "Compliance",
+    url: createPageUrl("Compliance"),
+    icon: ({ className }) => <span className={`text-sm ${className}`}>🛡️</span>,
+  },
+  {
+    title: "Data Quality",
+    url: createPageUrl("DataQuality"),
+    icon: ({ className }) => <span className={`text-sm ${className}`}>✓</span>,
+  },
+];
+
 export default function Layout({ children }) {
   const location = useLocation();
 
@@ -71,6 +90,32 @@ export default function Layout({ children }) {
                         asChild 
                         className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 rounded-xl mb-1 ${
                           location.pathname === item.url ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-600'
+                        }`}
+                      >
+                        <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
+                          <item.icon className="w-5 h-5" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {/* Admin Tools Section */}
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2 mt-4">
+                Admin Tools
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1 ${
+                          location.pathname === item.url ? 'bg-purple-50 text-purple-700 font-medium' : 'text-slate-600'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
