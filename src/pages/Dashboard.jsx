@@ -16,7 +16,7 @@ import {
   calculateOverallAccuracy,
   getPredictionsByConfidence,
   getRecentTrends,
-} from "../utils/dashboardStats";
+} from "../utils/dashboardStats.js";
 
 export default function Dashboard() {
   const { data: players, isLoading: playersLoading } = useQuery({

@@ -1,9 +1,10 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, Zap, Edit, Eye } from "lucide-react";
-import { calculateDataCompleteness, getDataQualityBadge } from "../../utils/sampleData";
+import { calculateDataCompleteness, getDataQualityBadge } from "../../utils/sampleData.js";
 
 export default function PlayerCard({ player, onClick, onEdit }) {
   const age = player.birth_year ? new Date().getFullYear() - player.birth_year : null;

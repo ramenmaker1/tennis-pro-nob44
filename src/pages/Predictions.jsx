@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BarChart3, Download, Filter } from "lucide-react";
 import { format } from "date-fns";
 import ProbabilityChart from "../components/match/ProbabilityChart";
-import { exportPredictionsToJSON, exportPredictionsToCSV } from "../utils/exportData";
+import { exportPredictionsToJSON, exportPredictionsToCSV } from "../utils/exportData.js";
 import { toast } from "sonner";
 
 export default function Predictions() {

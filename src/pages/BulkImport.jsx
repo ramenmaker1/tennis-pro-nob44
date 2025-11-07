@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, Download, AlertCircle, CheckCircle, FileText } from "lucide-react";
 import ImportPreview from "../components/admin/ImportPreview";
-import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from "../utils/csvParser";
-import { generatePlayerAliases } from "../utils/aliasGenerator";
+import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from "../utils/csvParser.js";
+import { generatePlayerAliases } from "../utils/aliasGenerator.js";
 import { toast } from "sonner";
 
 export default function BulkImport() {

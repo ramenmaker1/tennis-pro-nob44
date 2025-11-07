@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +9,7 @@ import { Plus, Search, Download, Sparkles } from "lucide-react";
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerStatsModal from "../components/players/PlayerStatsModal";
 import PlayerForm from "../components/players/PlayerForm";
-import { generateSamplePlayers } from "../utils/sampleData";
+import { generateSamplePlayers } from "../utils/sampleData.js";
 import { toast } from "sonner";
 
 export default function Players() {
