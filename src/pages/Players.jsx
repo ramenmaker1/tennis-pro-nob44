@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -41,25 +40,35 @@ export default function Players() {
     }
   };
 
-  const filteredPlayers = players.filter(player => {
+  const filteredPlayers = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
-    const searchMatch = (
-      (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
-      (player.first_name || '').toLowerCase().includes(searchLower) ||
-      (player.last_name || '').toLowerCase().includes(searchLower) ||
-      (player.nationality || player.country || '').toLowerCase().includes(searchLower)
-    );
+    return players.filter(player => {
+      const searchMatch = (
+        (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
+        (player.first_name || '').toLowerCase().includes(searchLower) ||
+        (player.last_name || '').toLowerCase().includes(searchLower) ||
+        (player.nationality || player.country || '').toLowerCase().includes(searchLower)
+      );
+  
+      if (!searchMatch) return false;
+  
+      if (surfaceFilter !== 'all') {
+        const surfaceKey = `${surfaceFilter}_court_win_pct`;
+        if (!player[surfaceKey]) return false;
+      }
+  
+      return true;
+    });
+  }, [players, searchQuery, surfaceFilter]);
 
-    if (!searchMatch) return false;
-
-    // Surface filter
-    if (surfaceFilter !== 'all') {
-      const surfaceKey = `${surfaceFilter}_court_win_pct`;
-      if (!player[surfaceKey]) return false;
-    }
-
-    return true;
-  });
+  const prefetchPlayer = useCallback((playerId) => {
+    if (!playerId) return;
+    queryClient.prefetchQuery({
+      queryKey: ['player', playerId],
+      queryFn: () => base44.entities.Player.get(playerId),
+      staleTime: 1000 * 60 * 5,
+    });
+  }, [queryClient]);
 
   const handleEdit = (player) => {
     setEditingPlayer(player);
@@ -168,6 +177,7 @@ export default function Players() {
               player={player}
               onClick={() => setSelectedPlayer(player)}
               onEdit={handleEdit}
+              onMouseEnter={() => prefetchPlayer(player.id)}
             />
           ))}
         </div>

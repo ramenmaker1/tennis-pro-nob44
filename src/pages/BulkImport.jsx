@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, Download, AlertCircle, CheckCircle, FileText } from "lucide-react";
 import ImportPreview from "../components/admin/ImportPreview";
 import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from "../utils/csvParser.js";
-import { generatePlayerAliases } from "../utils/aliasGenerator.js";
+import { generatePlayerAliases, createPlayerSlug } from "../utils/aliasGenerator.js";
 import { toast } from "sonner";
 
 export default function BulkImport() {
@@ -66,6 +66,10 @@ export default function BulkImport() {
     let errors = 0;
     const errorDetails = [];
 
+    // Preload existing players once and create slug set
+    const existing = await base44.entities.Player.list();
+    const existingSlugs = new Set(existing.map(p => p.slug || createPlayerSlug(p.display_name || p.name || p.full_name)));
+
     for (let i = 0; i < preview.length; i++) {
       const row = preview[i];
       
@@ -73,11 +77,9 @@ export default function BulkImport() {
         // Validate row
         const validatedData = validatePlayerImportRow(row);
 
-        // Check for duplicates by slug
-        const existing = await base44.entities.Player.list();
-        const duplicate = existing.find(p => p.slug === validatedData.slug);
-
-        if (duplicate) {
+        // Duplicate check by slug
+        const playerSlug = validatedData.slug || createPlayerSlug(validatedData.display_name);
+        if (existingSlugs.has(playerSlug)) {
           errorDetails.push({
             row: i + 1,
             player: validatedData.display_name,
@@ -88,22 +90,19 @@ export default function BulkImport() {
         }
 
         // Create player
-        const player = await base44.entities.Player.create(validatedData);
+        const player = await base44.entities.Player.create({ ...validatedData, slug: playerSlug });
+        existingSlugs.add(playerSlug);
 
-        // Generate and create aliases
+        // Generate and create aliases in parallel, ignore failures
         const aliases = generatePlayerAliases(player);
-        for (const alias of aliases) {
-          try {
-            await base44.entities.Alias.create({
-              player_id: player.id,
-              ...alias,
-              is_auto_generated: true,
-            });
-          } catch (aliasError) {
-            // Continue even if alias creation fails
-            console.error('Failed to create alias:', aliasError);
-          }
-        }
+        const aliasPromises = aliases.map((alias) => base44.entities.Alias.create({
+          player_id: player.id,
+          ...alias,
+          is_auto_generated: true,
+        }).catch((aliasError) => {
+          console.warn('Alias creation failed:', aliasError?.message || aliasError);
+        }));
+        await Promise.allSettled(aliasPromises);
 
         success++;
 
