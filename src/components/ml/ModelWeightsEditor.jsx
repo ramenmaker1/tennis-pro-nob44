@@ -7,23 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Settings, Save, RotateCcw } from "lucide-react";
+import { Settings, Save, RotateCcw, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ModelWeightsEditor({ currentWeights, onClose }) {
   const queryClient = useQueryClient();
-  const [weights, setWeights] = useState({
-    model_version: currentWeights.model_version || 'v4.0',
-    ranking_weight: currentWeights.ranking_weight || 0.25,
-    serve_weight: currentWeights.serve_weight || 0.20,
-    return_weight: currentWeights.return_weight || 0.15,
-    surface_weight: currentWeights.surface_weight || 0.15,
-    h2h_weight: currentWeights.h2h_weight || 0.10,
-    form_weight: currentWeights.form_weight || 0.10,
-    fatigue_weight: currentWeights.fatigue_weight || 0.03,
-    injury_weight: currentWeights.injury_weight || 0.02,
-    notes: currentWeights.notes || '',
-  });
+  const [weights, setWeights] = useState(() => initializeWeights(currentWeights));
 
   const totalWeight = 
     weights.ranking_weight + 
@@ -62,6 +51,38 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
     },
   });
 
+  const trainWeights = useMutation({
+    mutationFn: async () => {
+      const feedback = await base44.entities.ModelFeedback.list({ limit: 1000 });
+      if (!feedback || feedback.length === 0) {
+        throw new Error("No feedback data available");
+      }
+
+      const optimizedWeights = optimizeWeights(feedback, weights);
+
+      if (currentWeights.id) {
+        await base44.entities.ModelWeights.update(currentWeights.id, { is_active: false });
+      }
+
+      return base44.entities.ModelWeights.create({
+        ...optimizedWeights,
+        is_active: true,
+        training_date: new Date().toISOString(),
+        training_samples: feedback.length,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['model-weights'] });
+      queryClient.invalidateQueries({ queryKey: ['model-feedback'] });
+      toast.success('Auto-training complete! New weights activated.');
+      onClose();
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error?.message || 'Failed to auto-train weights');
+    },
+  });
+
   const handleWeightChange = (key, value) => {
     setWeights(prev => ({ ...prev, [key]: value }));
   };
@@ -75,18 +96,7 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
   };
 
   const resetToDefaults = () => {
-    setWeights({
-      model_version: 'v4.0',
-      ranking_weight: 0.25,
-      serve_weight: 0.20,
-      return_weight: 0.15,
-      surface_weight: 0.15,
-      h2h_weight: 0.10,
-      form_weight: 0.10,
-      fatigue_weight: 0.03,
-      injury_weight: 0.02,
-      notes: '',
-    });
+    setWeights(initializeWeights());
   };
 
   return (
@@ -194,6 +204,16 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset to Defaults
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => trainWeights.mutate()}
+              disabled={trainWeights.isPending}
+              className="border-amber-400 text-amber-600 hover:bg-amber-50"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              {trainWeights.isPending ? 'Training...' : 'Auto-Train'}
+            </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
@@ -230,4 +250,103 @@ function WeightSlider({ label, value, onChange, description }) {
       <p className="text-xs text-slate-500">{description}</p>
     </div>
   );
+}
+
+function initializeWeights(existing = {}) {
+  return {
+    model_version: existing.model_version || 'v4.0',
+    ranking_weight: existing.ranking_weight ?? 0.25,
+    serve_weight: existing.serve_weight ?? 0.20,
+    return_weight: existing.return_weight ?? 0.15,
+    surface_weight: existing.surface_weight ?? 0.15,
+    h2h_weight: existing.h2h_weight ?? 0.10,
+    form_weight: existing.form_weight ?? 0.10,
+    fatigue_weight: existing.fatigue_weight ?? 0.03,
+    injury_weight: existing.injury_weight ?? 0.02,
+    notes: existing.notes || '',
+  };
+}
+
+const FEATURE_MAP = [
+  { weightKey: 'ranking_weight', featureKey: 'ranking_delta', scale: 200 },
+  { weightKey: 'serve_weight', featureKey: 'serve_delta', scale: 50 },
+  { weightKey: 'return_weight', featureKey: 'return_delta', scale: 50 },
+  { weightKey: 'surface_weight', featureKey: 'surface_delta', scale: 50 },
+  { weightKey: 'h2h_weight', featureKey: 'h2h_delta', scale: 10 },
+  { weightKey: 'form_weight', featureKey: 'form_delta', scale: 10 },
+  { weightKey: 'fatigue_weight', featureKey: 'fatigue_delta', scale: 10 },
+  { weightKey: 'injury_weight', featureKey: 'injury_delta', scale: 5 },
+];
+
+function optimizeWeights(feedback = [], baseWeights = initializeWeights()) {
+  let weights = { ...baseWeights };
+  const seedVersion = baseWeights.model_version || 'v4.0';
+  if (!Array.isArray(feedback) || feedback.length === 0) {
+    return weights;
+  }
+
+  const learningRate = 0.05;
+  const iterations = 100;
+
+  for (let i = 0; i < iterations; i++) {
+    const gradients = FEATURE_MAP.reduce((acc, { weightKey }) => {
+      acc[weightKey] = 0;
+      return acc;
+    }, {});
+
+    feedback.forEach((entry) => {
+      const snapshot = entry.feature_snapshot || {};
+      const target = entry.was_correct ? 1 : 0;
+      const score = FEATURE_MAP.reduce((sum, { weightKey, featureKey, scale }) => {
+        const featureValue = normalizeFeature(snapshot[featureKey], scale);
+        return sum + (weights[weightKey] || 0) * featureValue;
+      }, 0);
+      const prediction = sigmoid(score);
+      const error = prediction - target;
+
+      FEATURE_MAP.forEach(({ weightKey, featureKey, scale }) => {
+        const featureValue = normalizeFeature(snapshot[featureKey], scale);
+        gradients[weightKey] += error * featureValue;
+      });
+    });
+
+    FEATURE_MAP.forEach(({ weightKey }) => {
+      weights[weightKey] -= learningRate * (gradients[weightKey] / feedback.length);
+      weights[weightKey] = clamp(weights[weightKey], 0.01, 0.4);
+    });
+
+    weights = renormalizeWeights(weights);
+  }
+
+  weights.model_version = generateAutoVersion(seedVersion);
+  weights.notes = `Auto-trained on ${feedback.length} samples (${new Date().toLocaleDateString()})`;
+  return weights;
+}
+
+function normalizeFeature(value, scale = 1) {
+  if (value == null) return 0;
+  return Math.tanh(Number(value) / scale);
+}
+
+function sigmoid(x) {
+  return 1 / (1 + Math.exp(-x));
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function renormalizeWeights(weights) {
+  const total = FEATURE_MAP.reduce((sum, { weightKey }) => sum + (weights[weightKey] || 0), 0);
+  if (total === 0) return weights;
+  FEATURE_MAP.forEach(({ weightKey }) => {
+    weights[weightKey] = (weights[weightKey] || 0) / total;
+  });
+  return weights;
+}
+
+function generateAutoVersion(currentVersion = 'v4.0') {
+  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  if (!currentVersion) return `auto-${timestamp}`;
+  return `${currentVersion}-auto-${timestamp}`;
 }

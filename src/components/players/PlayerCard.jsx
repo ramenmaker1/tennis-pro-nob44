@@ -1,19 +1,23 @@
 
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, Zap, Edit, Eye } from "lucide-react";
 import { calculateDataCompleteness, getDataQualityBadge } from "../../utils/sampleData.js";
 
-export default function PlayerCard({ player, onClick, onEdit }) {
-  const age = player.birth_year ? new Date().getFullYear() - player.birth_year : null;
-  const completeness = calculateDataCompleteness(player);
-  const qualityBadge = getDataQualityBadge(completeness);
-  
+function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
+  const age = useMemo(
+    () => (player.birth_year ? new Date().getFullYear() - player.birth_year : null),
+    [player.birth_year]
+  );
+  const completeness = useMemo(() => calculateDataCompleteness(player), [player]);
+  const qualityBadge = useMemo(() => getDataQualityBadge(completeness), [completeness]);
+
   return (
     <Card 
       className="hover:shadow-lg transition-all duration-300 bg-white border-slate-200 group relative overflow-hidden"
+      onMouseEnter={onMouseEnter}
     >
       {/* Data Quality Badge */}
       <div className="absolute top-3 right-3 z-10">
@@ -139,3 +143,5 @@ export default function PlayerCard({ player, onClick, onEdit }) {
     </Card>
   );
 }
+
+export default memo(PlayerCard);

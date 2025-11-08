@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { format } from "date-fns";
 import ProbabilityChart from "../components/match/ProbabilityChart";
 import { exportPredictionsToJSON, exportPredictionsToCSV } from "../utils/exportData.js";
 import { toast } from "sonner";
+import { PredictionFeedback } from "../components/ml/PredictionFeedback.jsx";
 
 export default function Predictions() {
   const [selectedPrediction, setSelectedPrediction] = useState(null);
@@ -35,11 +35,13 @@ export default function Predictions() {
     initialData: [],
   });
 
-  const filteredPredictions = predictions.filter(pred => {
-    if (modelFilter !== 'all' && pred.model_type !== modelFilter) return false;
-    if (confidenceFilter !== 'all' && pred.confidence_level !== confidenceFilter) return false;
-    return true;
-  });
+  const filteredPredictions = useMemo(() => {
+    return predictions.filter(pred => {
+      if (modelFilter !== 'all' && pred.model_type !== modelFilter) return false;
+      if (confidenceFilter !== 'all' && pred.confidence_level !== confidenceFilter) return false;
+      return true;
+    });
+  }, [predictions, modelFilter, confidenceFilter]);
 
   const getPredictionDetails = (prediction) => {
     const match = matches.find(m => m.id === prediction.match_id);
@@ -250,6 +252,13 @@ export default function Predictions() {
                             player2Name={player2?.display_name || player2?.name}
                           />
                         )}
+
+                        <PredictionFeedback
+                          prediction={prediction}
+                          match={match}
+                          player1={player1}
+                          player2={player2}
+                        />
                       </div>
                     )}
                   </div>
@@ -284,3 +293,4 @@ export default function Predictions() {
     </div>
   );
 }
+

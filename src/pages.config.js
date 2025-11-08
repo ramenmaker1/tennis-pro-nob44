@@ -1,13 +1,17 @@
-import Dashboard from './pages/Dashboard';
-import Players from './pages/Players';
-import MatchAnalysis from './pages/MatchAnalysis';
-import Predictions from './pages/Predictions';
-import BulkImport from './pages/BulkImport';
-import Compliance from './pages/Compliance';
-import DataQuality from './pages/DataQuality';
-import Help from './pages/Help';
-import MLDashboard from './pages/MLDashboard';
+import { lazy } from 'react';
 import Layout from './Layout.jsx';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Players = lazy(() => import('./pages/Players'));
+const MatchAnalysis = lazy(() => import('./pages/MatchAnalysis'));
+const Predictions = lazy(() => import('./pages/Predictions'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const MatchHistory = lazy(() => import('./pages/MatchHistory'));
+const MLDashboard = lazy(() => import('./pages/MLDashboard'));
+const BulkImport = lazy(() => import('./pages/BulkImport'));
+const Compliance = lazy(() => import('./pages/Compliance'));
+const DataQuality = lazy(() => import('./pages/DataQuality'));
+const Help = lazy(() => import('./pages/Help'));
 
 
 export const PAGES = {
@@ -15,6 +19,8 @@ export const PAGES = {
     "Players": Players,
     "MatchAnalysis": MatchAnalysis,
     "Predictions": Predictions,
+    "Analytics": Analytics,
+    "MatchHistory": MatchHistory,
     "BulkImport": BulkImport,
     "Compliance": Compliance,
     "DataQuality": DataQuality,

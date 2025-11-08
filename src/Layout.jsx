@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { LayoutDashboard, Users, TrendingUp, BarChart3, Target, Brain, Upload, Shield, FileText, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Users, TrendingUp, BarChart3, Target, Brain, Upload, Shield, FileText, HelpCircle, CalendarClock } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,8 @@ const navItems = [
   { name: "Players", icon: Users, path: "Players", group: "navigation" },
   { name: "Match Analysis", icon: TrendingUp, path: "MatchAnalysis", group: "navigation" },
   { name: "Predictions", icon: Target, path: "Predictions", group: "navigation" },
+  { name: "Analytics", icon: BarChart3, path: "Analytics", group: "navigation" },
+  { name: "Match History", icon: CalendarClock, path: "MatchHistory", group: "navigation" },
   { name: "ML Dashboard", icon: Brain, path: "MLDashboard", group: "navigation" },
   { name: "Bulk Import", icon: Upload, path: "BulkImport", group: "admin" },
   { name: "Data Quality", icon: Shield, path: "DataQuality", group: "admin" },

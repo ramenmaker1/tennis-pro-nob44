@@ -36,6 +36,12 @@ export default function Compliance() {
     violation: 'bg-red-100 text-red-700',
   };
 
+  const statusGlyphs = {
+    compliant: '✓',
+    pending_review: '⏳',
+    violation: '⚠️',
+  };
+
   const statusIcons = {
     compliant: '✓',
     pending_review: '⏱',
@@ -139,7 +145,7 @@ export default function Compliance() {
                       </td>
                       <td className="py-3 px-2 text-center">
                         <Badge className={statusColors[source.compliance_status]}>
-                          {statusIcons[source.compliance_status]} {source.compliance_status.replace('_', ' ')}
+                          {statusGlyphs[source.compliance_status]} {source.compliance_status.replace('_', ' ')}
                         </Badge>
                       </td>
                       <td className="py-3 px-2 text-center text-sm text-slate-600">

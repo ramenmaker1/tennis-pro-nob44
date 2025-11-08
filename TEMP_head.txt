@@ -1,0 +1,50 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Badge } from "@/components/ui/badge";
+
+export default function ModelPerformanceChart({ accuracyByModel, predictionCounts }) {
+  const data = [
+    {
+      model: 'Conservative',
+      accuracy: accuracyByModel.conservative,
+      predictions: predictionCounts.conservative,
+      color: '#3B82F6',
+    },
+    {
+      model: 'Balanced',
+      accuracy: accuracyByModel.balanced,
+      predictions: predictionCounts.balanced,
+      color: '#FBBF24',
+    },
+    {
+      model: 'Aggressive',
+      accuracy: accuracyByModel.aggressive,
+      predictions: predictionCounts.aggressive,
+      color: '#EF4444',
+    },
+  ];
+
+  return (
+    <Card className="shadow-md">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          📊 Model Performance Comparison
+        </CardTitle>
+        <p className="text-sm text-slate-500 mt-1">
+          Accuracy rates for each prediction model type
+        </p>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="model" stroke="#64748b" />
+            <YAxis 
+              stroke="#64748b"
+              label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e2e8f0',

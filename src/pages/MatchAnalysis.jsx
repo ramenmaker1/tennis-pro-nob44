@@ -15,11 +15,12 @@ import { createPageUrl } from "@/utils";
 import { generateAllPredictions } from "../utils/predictionGenerator.js";
 import { generateMLPrediction } from "../utils/mlPrediction.js"; // Added ML Prediction
 import { Badge } from "@/components/ui/badge";
-import { toast } from 'react-hot-toast'; // Assuming react-hot-toast for toasts
+import { useToast } from "@/components/ui/use-toast";
 
 export default function MatchAnalysis() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     player1_id: "",
     player2_id: "",
@@ -72,11 +73,11 @@ export default function MatchAnalysis() {
     onSuccess: ({ match, predictions }) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       queryClient.invalidateQueries({ queryKey: ['predictions'] });
-      toast.success(mlEnhanced ? 'ML-enhanced prediction generated!' : `Generated ${predictions.length} predictions successfully!`);
+      toast({ title: 'Success', description: mlEnhanced ? 'ML-enhanced prediction generated!' : `Generated ${predictions.length} predictions successfully!` });
       navigate(createPageUrl("Predictions"));
     },
     onError: (error) => {
-      toast.error("Failed to generate predictions. Please try again.");
+      toast({ title: 'Error', description: 'Failed to generate predictions. Please try again.', variant: 'destructive' });
       console.error(error);
       setError("Failed to generate predictions. Please check your inputs and try again.");
     },

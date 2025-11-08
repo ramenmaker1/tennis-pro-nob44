@@ -1,4 +1,5 @@
 import './App.css'
+import { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -20,6 +21,15 @@ setupIframeMessaging();
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
+
+const SuspenseFallback = (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="flex flex-col items-center gap-3 text-slate-500">
+      <div className="w-10 h-10 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin" />
+      <p className="text-sm font-medium">Loading TennisPro...</p>
+    </div>
+  </div>
+);
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
@@ -47,13 +57,15 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
-      <Routes>
-        <Route path="/" element={<MainPage />} />
-        {Object.entries(Pages).map(([path, Page]) => (
-          <Route key={path} path={`/${path}`} element={<Page />} />
-        ))}
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+      <Suspense fallback={SuspenseFallback}>
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          {Object.entries(Pages).map(([path, Page]) => (
+            <Route key={path} path={`/${path}`} element={<Page />} />
+          ))}
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </Suspense>
     </LayoutWrapper>
   );
 };

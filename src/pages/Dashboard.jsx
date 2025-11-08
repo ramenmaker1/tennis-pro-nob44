@@ -8,8 +8,10 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { TrendingUp, Users, BarChart3, Plus, Calendar, Trophy, Target, Activity } from "lucide-react";
 import { format } from "date-fns";
+import { formatMatchTime } from "../utils/timezone.js";
 import ModelPerformanceChart from "../components/analytics/ModelPerformanceChart";
 import RecentPredictionsTable from "../components/analytics/RecentPredictionsTable";
+import EmptyState from "../components/EmptyState.jsx";
 import {
   getAccuracyByModel,
   getPredictionCountsByModel,
@@ -39,6 +41,7 @@ export default function Dashboard() {
 
   // Show loading state
   const isLoading = playersLoading || matchesLoading || predictionsLoading;
+  const hasError = false; // placeholder if wiring query errors later
 
   if (isLoading) {
     return (
@@ -74,7 +77,7 @@ export default function Dashboard() {
   const confidenceCounts = getPredictionsByConfidence(predictions);
   const recentTrends = getRecentTrends(predictions);
   
-  const upcomingMatches = matches.filter(m => m.status === 'scheduled' || m.status === 'upcoming').slice(0, 5);
+  const upcomingMatches = matches.filter(m => m.status === 'scheduled').slice(0, 5);
   const recentPredictions = predictions.slice(0, 10);
   
   const completedPredictions = predictions.filter(p => p.actual_winner_id);
@@ -95,6 +98,20 @@ export default function Dashboard() {
           </Button>
         </Link>
       </div>
+
+      {/* Empty predictions state */}
+      {predictions?.length === 0 && !isLoading && (
+        <EmptyState
+          icon={<BarChart3 className="w-6 h-6 text-emerald-600" />}
+          title="No predictions yet"
+          description="Create your first match analysis to see predictions here."
+          action={(
+            <Link to={createPageUrl("MatchAnalysis")}>
+              <Button>Create Match</Button>
+            </Link>
+          )}
+        />
+      )}
 
       {/* Stats Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -286,7 +303,7 @@ function MatchRow({ match, players }) {
       </div>
       <div className="text-right">
         <div className="text-sm font-medium text-slate-700">
-          {match.utc_start && format(new Date(match.utc_start), "MMM d")}
+          {match.utc_start ? formatMatchTime(match.utc_start) : null}
         </div>
       </div>
     </div>
