@@ -25,4 +25,3 @@ export const formatMatchTime = (utcDateString, userTimezone = null) => {
     return date.toISOString();
   }
 };
-

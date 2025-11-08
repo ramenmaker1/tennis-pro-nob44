@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,17 +8,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 export default function ConfirmDialog({
   open,
   onOpenChange,
   title,
   description,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
   onConfirm,
-  variant = "default",
+  variant = 'default',
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -32,9 +32,9 @@ export default function ConfirmDialog({
           <AlertDialogAction
             onClick={onConfirm}
             className={
-              variant === "destructive"
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-emerald-600 hover:bg-emerald-700"
+              variant === 'destructive'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-emerald-600 hover:bg-emerald-700'
             }
           >
             {confirmText}

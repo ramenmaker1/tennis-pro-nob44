@@ -1,8 +1,19 @@
-
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { LayoutDashboard, Users, TrendingUp, BarChart3, Target, Brain, Upload, Shield, FileText, HelpCircle, CalendarClock } from "lucide-react";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import {
+  LayoutDashboard,
+  Users,
+  TrendingUp,
+  BarChart3,
+  Target,
+  Brain,
+  Upload,
+  Shield,
+  FileText,
+  HelpCircle,
+  CalendarClock,
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -15,28 +26,28 @@ import {
   SidebarHeader,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import ErrorBoundary from "./components/ErrorBoundary";
+} from '@/components/ui/sidebar';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "Dashboard", group: "navigation" },
-  { name: "Players", icon: Users, path: "Players", group: "navigation" },
-  { name: "Match Analysis", icon: TrendingUp, path: "MatchAnalysis", group: "navigation" },
-  { name: "Predictions", icon: Target, path: "Predictions", group: "navigation" },
-  { name: "Analytics", icon: BarChart3, path: "Analytics", group: "navigation" },
-  { name: "Match History", icon: CalendarClock, path: "MatchHistory", group: "navigation" },
-  { name: "ML Dashboard", icon: Brain, path: "MLDashboard", group: "navigation" },
-  { name: "Bulk Import", icon: Upload, path: "BulkImport", group: "admin" },
-  { name: "Data Quality", icon: Shield, path: "DataQuality", group: "admin" },
-  { name: "Compliance", icon: FileText, path: "Compliance", group: "admin" },
-  { name: "Help", icon: HelpCircle, path: "Help", group: "admin" },
+  { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard', group: 'navigation' },
+  { name: 'Players', icon: Users, path: 'Players', group: 'navigation' },
+  { name: 'Match Analysis', icon: TrendingUp, path: 'MatchAnalysis', group: 'navigation' },
+  { name: 'Predictions', icon: Target, path: 'Predictions', group: 'navigation' },
+  { name: 'Analytics', icon: BarChart3, path: 'Analytics', group: 'navigation' },
+  { name: 'Match History', icon: CalendarClock, path: 'MatchHistory', group: 'navigation' },
+  { name: 'ML Dashboard', icon: Brain, path: 'MLDashboard', group: 'navigation' },
+  { name: 'Bulk Import', icon: Upload, path: 'BulkImport', group: 'admin' },
+  { name: 'Data Quality', icon: Shield, path: 'DataQuality', group: 'admin' },
+  { name: 'Compliance', icon: FileText, path: 'Compliance', group: 'admin' },
+  { name: 'Help', icon: HelpCircle, path: 'Help', group: 'admin' },
 ];
 
 export default function Layout({ children }) {
   const location = useLocation();
 
-  const navigationGroupItems = navItems.filter(item => item.group === "navigation");
-  const adminGroupItems = navItems.filter(item => item.group === "admin");
+  const navigationGroupItems = navItems.filter((item) => item.group === 'navigation');
+  const adminGroupItems = navItems.filter((item) => item.group === 'admin');
 
   return (
     <ErrorBoundary>
@@ -54,7 +65,7 @@ export default function Layout({ children }) {
                 </div>
               </div>
             </SidebarHeader>
-            
+
             <SidebarContent className="p-3">
               <SidebarGroup>
                 <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
@@ -66,10 +77,12 @@ export default function Layout({ children }) {
                       const itemUrl = createPageUrl(item.path);
                       return (
                         <SidebarMenuItem key={item.name}>
-                          <SidebarMenuButton 
-                            asChild 
+                          <SidebarMenuButton
+                            asChild
                             className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 rounded-xl mb-1 ${
-                              location.pathname === itemUrl ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-slate-600'
+                              location.pathname === itemUrl
+                                ? 'bg-emerald-50 text-emerald-700 font-medium'
+                                : 'text-slate-600'
                             }`}
                           >
                             <Link to={itemUrl} className="flex items-center gap-3 px-3 py-2.5">
@@ -95,10 +108,12 @@ export default function Layout({ children }) {
                       const itemUrl = createPageUrl(item.path);
                       return (
                         <SidebarMenuItem key={item.name}>
-                          <SidebarMenuButton 
-                            asChild 
+                          <SidebarMenuButton
+                            asChild
                             className={`hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1 ${
-                              location.pathname === itemUrl ? 'bg-purple-50 text-purple-700 font-medium' : 'text-slate-600'
+                              location.pathname === itemUrl
+                                ? 'bg-purple-50 text-purple-700 font-medium'
+                                : 'text-slate-600'
                             }`}
                           >
                             <Link to={itemUrl} className="flex items-center gap-3 px-3 py-2.5">
@@ -123,9 +138,7 @@ export default function Layout({ children }) {
               </div>
             </header>
 
-            <div className="flex-1 overflow-auto">
-              {children}
-            </div>
+            <div className="flex-1 overflow-auto">{children}</div>
           </main>
         </div>
       </SidebarProvider>

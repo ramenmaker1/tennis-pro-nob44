@@ -1,12 +1,12 @@
-import React from "react";
-import { Loader2 } from "lucide-react";
+import React from 'react';
+import { Loader2 } from 'lucide-react';
 
-export default function LoadingSpinner({ size = "default", text = "" }) {
+export default function LoadingSpinner({ size = 'default', text = '' }) {
   const sizeClasses = {
-    sm: "w-4 h-4",
-    default: "w-8 h-8",
-    lg: "w-12 h-12",
-    xl: "w-16 h-16",
+    sm: 'w-4 h-4',
+    default: 'w-8 h-8',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16',
   };
 
   return (
@@ -17,7 +17,7 @@ export default function LoadingSpinner({ size = "default", text = "" }) {
   );
 }
 
-export function PageLoader({ text = "Loading..." }) {
+export function PageLoader({ text = 'Loading...' }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <LoadingSpinner size="xl" text={text} />

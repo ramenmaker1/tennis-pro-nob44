@@ -1,25 +1,34 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Sparkles, TrendingUp } from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
 export default function FeatureImportance({ feedback, weights }) {
   // Calculate feature importance based on weights
   const features = [
     { name: 'Ranking', weight: weights.ranking_weight || 0.25, icon: '🏆' },
-    { name: 'Serve', weight: weights.serve_weight || 0.20, icon: '🎾' },
+    { name: 'Serve', weight: weights.serve_weight || 0.2, icon: '🎾' },
     { name: 'Return', weight: weights.return_weight || 0.15, icon: '↩️' },
     { name: 'Surface', weight: weights.surface_weight || 0.15, icon: '🏟️' },
-    { name: 'Head-to-Head', weight: weights.h2h_weight || 0.10, icon: '🤝' },
-    { name: 'Form', weight: weights.form_weight || 0.10, icon: '📈' },
+    { name: 'Head-to-Head', weight: weights.h2h_weight || 0.1, icon: '🤝' },
+    { name: 'Form', weight: weights.form_weight || 0.1, icon: '📈' },
     { name: 'Fatigue', weight: weights.fatigue_weight || 0.03, icon: '😓' },
     { name: 'Injury', weight: weights.injury_weight || 0.02, icon: '🩹' },
   ];
 
   const sortedFeatures = [...features].sort((a, b) => b.weight - a.weight);
 
-  const chartData = sortedFeatures.map(f => ({
+  const chartData = sortedFeatures.map((f) => ({
     name: f.name,
     weight: (f.weight * 100).toFixed(1),
     percentage: f.weight * 100,
@@ -28,9 +37,9 @@ export default function FeatureImportance({ feedback, weights }) {
   // Analyze which features contribute most to correct predictions
   const featureContribution = feedback.reduce((acc, f) => {
     if (!f.features_used) return acc;
-    
+
     const features = f.features_used;
-    Object.keys(features).forEach(key => {
+    Object.keys(features).forEach((key) => {
       if (!acc[key]) {
         acc[key] = { correct: 0, total: 0 };
       }
@@ -39,7 +48,7 @@ export default function FeatureImportance({ feedback, weights }) {
         acc[key].correct++;
       }
     });
-    
+
     return acc;
   }, {});
 
@@ -74,7 +83,10 @@ export default function FeatureImportance({ feedback, weights }) {
         <CardContent>
           <div className="space-y-3">
             {sortedFeatures.map((feature, idx) => (
-              <div key={feature.name} className="p-4 rounded-lg border border-slate-200 hover:border-purple-300 transition-colors">
+              <div
+                key={feature.name}
+                className="p-4 rounded-lg border border-slate-200 hover:border-purple-300 transition-colors"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{feature.icon}</span>
@@ -124,19 +136,23 @@ export default function FeatureImportance({ feedback, weights }) {
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5" />
               <p className="text-slate-700">
-                <strong>Top Features:</strong> Ranking ({(weights.ranking_weight * 100).toFixed(0)}%) and Serve ({(weights.serve_weight * 100).toFixed(0)}%) are the most influential factors in predictions.
+                <strong>Top Features:</strong> Ranking ({(weights.ranking_weight * 100).toFixed(0)}
+                %) and Serve ({(weights.serve_weight * 100).toFixed(0)}%) are the most influential
+                factors in predictions.
               </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5" />
               <p className="text-slate-700">
-                <strong>Balance:</strong> The model maintains a good balance between player statistics and situational factors (H2H, form, fatigue).
+                <strong>Balance:</strong> The model maintains a good balance between player
+                statistics and situational factors (H2H, form, fatigue).
               </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5" />
               <p className="text-slate-700">
-                <strong>Recommendation:</strong> Monitor prediction accuracy by feature to identify opportunities for weight adjustments.
+                <strong>Recommendation:</strong> Monitor prediction accuracy by feature to identify
+                opportunities for weight adjustments.
               </p>
             </div>
           </div>
@@ -148,14 +164,14 @@ export default function FeatureImportance({ feedback, weights }) {
 
 function getFeatureDescription(name) {
   const descriptions = {
-    'Ranking': 'ATP/WTA ranking difference between players',
-    'Serve': 'First serve percentage and effectiveness',
-    'Return': 'Return game statistics and break point conversion',
-    'Surface': 'Performance on specific court surfaces',
+    Ranking: 'ATP/WTA ranking difference between players',
+    Serve: 'First serve percentage and effectiveness',
+    Return: 'Return game statistics and break point conversion',
+    Surface: 'Performance on specific court surfaces',
     'Head-to-Head': 'Historical matchup results',
-    'Form': 'Recent match results and win streaks',
-    'Fatigue': 'Rest days and match frequency',
-    'Injury': 'Active injury status and impact',
+    Form: 'Recent match results and win streaks',
+    Fatigue: 'Rest days and match frequency',
+    Injury: 'Active injury status and impact',
   };
   return descriptions[name] || '';
 }

@@ -1,26 +1,26 @@
-import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from "@/components/ui/use-toast";
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/components/ui/use-toast';
 
 const WEIGHT_FEATURE_KEYS = [
-  "ranking_delta",
-  "serve_delta",
-  "return_delta",
-  "surface_delta",
-  "form_delta",
-  "fatigue_delta",
-  "injury_delta",
+  'ranking_delta',
+  'serve_delta',
+  'return_delta',
+  'surface_delta',
+  'form_delta',
+  'fatigue_delta',
+  'injury_delta',
 ];
 
 export function PredictionFeedback({ prediction, match = {}, player1, player2 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [actualWinner, setActualWinner] = useState("");
+  const [actualWinner, setActualWinner] = useState('');
 
   const submitFeedback = useMutation({
     mutationFn: async () => {
@@ -55,26 +55,26 @@ export function PredictionFeedback({ prediction, match = {}, player1, player2 })
     },
     onSuccess: () => {
       toast({
-        title: "Feedback recorded",
-        description: "Model will learn from this result.",
+        title: 'Feedback recorded',
+        description: 'Model will learn from this result.',
       });
-      setActualWinner("");
-      queryClient.invalidateQueries({ queryKey: ["predictions"] });
-      queryClient.invalidateQueries({ queryKey: ["matches"] });
-      queryClient.invalidateQueries({ queryKey: ["model-feedback"] });
+      setActualWinner('');
+      queryClient.invalidateQueries({ queryKey: ['predictions'] });
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['model-feedback'] });
     },
     onError: (error) => {
       console.error(error);
       toast({
-        title: "Failed to record result",
-        description: "Please try again.",
-        variant: "destructive",
+        title: 'Failed to record result',
+        description: 'Please try again.',
+        variant: 'destructive',
       });
     },
   });
 
-  const player1Name = player1?.display_name || player1?.name || "Player 1";
-  const player2Name = player2?.display_name || player2?.name || "Player 2";
+  const player1Name = player1?.display_name || player1?.name || 'Player 1';
+  const player2Name = player2?.display_name || player2?.name || 'Player 2';
   const resultAlreadyCaptured = Boolean(prediction?.actual_winner_id);
 
   return (
@@ -85,21 +85,27 @@ export function PredictionFeedback({ prediction, match = {}, player1, player2 })
       <CardContent className="space-y-4">
         {resultAlreadyCaptured ? (
           <p className="text-sm text-slate-600">
-            Result recorded:{" "}
+            Result recorded:{' '}
             {prediction.actual_winner_id === player1?.id ? player1Name : player2Name}.
           </p>
         ) : (
           <>
             <RadioGroup value={actualWinner} onValueChange={setActualWinner} className="space-y-3">
               <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-3">
-                <RadioGroupItem value={match?.player1_id || player1?.id || "player1"} id={`p1-${prediction.id}`} />
+                <RadioGroupItem
+                  value={match?.player1_id || player1?.id || 'player1'}
+                  id={`p1-${prediction.id}`}
+                />
                 <Label htmlFor={`p1-${prediction.id}`} className="flex-1 cursor-pointer">
                   <div className="font-medium text-slate-900">{player1Name}</div>
                   <p className="text-xs text-slate-500">Player 1 Actual Winner</p>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-3">
-                <RadioGroupItem value={match?.player2_id || player2?.id || "player2"} id={`p2-${prediction.id}`} />
+                <RadioGroupItem
+                  value={match?.player2_id || player2?.id || 'player2'}
+                  id={`p2-${prediction.id}`}
+                />
                 <Label htmlFor={`p2-${prediction.id}`} className="flex-1 cursor-pointer">
                   <div className="font-medium text-slate-900">{player2Name}</div>
                   <p className="text-xs text-slate-500">Player 2 Actual Winner</p>
@@ -111,7 +117,7 @@ export function PredictionFeedback({ prediction, match = {}, player1, player2 })
               disabled={!actualWinner || submitFeedback.isPending}
               className="w-full"
             >
-              {submitFeedback.isPending ? "Recording..." : "Submit Result"}
+              {submitFeedback.isPending ? 'Recording...' : 'Submit Result'}
             </Button>
           </>
         )}

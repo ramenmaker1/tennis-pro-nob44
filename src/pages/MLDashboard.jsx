@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, TrendingUp, Target, Zap, RefreshCw, Settings } from "lucide-react";
-import { toast } from "sonner";
-import ModelWeightsEditor from "../components/ml/ModelWeightsEditor";
-import LearningAnalytics from "../components/ml/LearningAnalytics";
-import FeatureImportance from "../components/ml/FeatureImportance";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Brain, TrendingUp, Target, Zap, RefreshCw, Settings } from 'lucide-react';
+import { toast } from 'sonner';
+import ModelWeightsEditor from '../components/ml/ModelWeightsEditor';
+import LearningAnalytics from '../components/ml/LearningAnalytics';
+import FeatureImportance from '../components/ml/FeatureImportance';
 
 export default function MLDashboard() {
   const queryClient = useQueryClient();
@@ -27,32 +27,33 @@ export default function MLDashboard() {
     initialData: [],
   });
 
-  const activeWeights = weights.find(w => w.is_active) || {};
+  const activeWeights = weights.find((w) => w.is_active) || {};
 
   // Calculate ML model statistics
-  const mlFeedback = feedback.filter(f => f.model_type === 'ml_enhanced');
+  const mlFeedback = feedback.filter((f) => f.model_type === 'ml_enhanced');
   const totalML = mlFeedback.length;
-  const correctML = mlFeedback.filter(f => f.was_correct).length;
-  const accuracyML = totalML > 0 ? (correctML / totalML * 100) : 0;
+  const correctML = mlFeedback.filter((f) => f.was_correct).length;
+  const accuracyML = totalML > 0 ? (correctML / totalML) * 100 : 0;
 
-  const calibrationScore = totalML > 0 
-    ? mlFeedback.reduce((sum, f) => sum + (100 - f.calibration_error), 0) / totalML
-    : 0;
+  const calibrationScore =
+    totalML > 0 ? mlFeedback.reduce((sum, f) => sum + (100 - f.calibration_error), 0) / totalML : 0;
 
-  const highConfidenceML = mlFeedback.filter(f => f.confidence_level === 'high');
-  const highConfAccuracy = highConfidenceML.length > 0
-    ? (highConfidenceML.filter(f => f.was_correct).length / highConfidenceML.length * 100)
-    : 0;
+  const highConfidenceML = mlFeedback.filter((f) => f.confidence_level === 'high');
+  const highConfAccuracy =
+    highConfidenceML.length > 0
+      ? (highConfidenceML.filter((f) => f.was_correct).length / highConfidenceML.length) * 100
+      : 0;
 
   // Recent performance (last 30 days)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const recentML = mlFeedback.filter(f => 
-    f.feedback_date && new Date(f.feedback_date) >= thirtyDaysAgo
+  const recentML = mlFeedback.filter(
+    (f) => f.feedback_date && new Date(f.feedback_date) >= thirtyDaysAgo
   );
-  const recentAccuracy = recentML.length > 0
-    ? (recentML.filter(f => f.was_correct).length / recentML.length * 100)
-    : 0;
+  const recentAccuracy =
+    recentML.length > 0
+      ? (recentML.filter((f) => f.was_correct).length / recentML.length) * 100
+      : 0;
 
   return (
     <div className="p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
@@ -114,9 +115,7 @@ export default function MLDashboard() {
                 </div>
               </div>
             </div>
-            <div className="text-xs text-slate-500">
-              Prediction confidence accuracy
-            </div>
+            <div className="text-xs text-slate-500">Prediction confidence accuracy</div>
           </CardContent>
         </Card>
 
@@ -132,7 +131,8 @@ export default function MLDashboard() {
               </div>
             </div>
             <div className="text-xs text-slate-500">
-              {highConfidenceML.filter(f => f.was_correct).length}/{highConfidenceML.length} correct
+              {highConfidenceML.filter((f) => f.was_correct).length}/{highConfidenceML.length}{' '}
+              correct
             </div>
           </CardContent>
         </Card>
@@ -148,9 +148,7 @@ export default function MLDashboard() {
                 </div>
               </div>
             </div>
-            <div className="text-xs text-slate-500">
-              {recentML.length} predictions analyzed
-            </div>
+            <div className="text-xs text-slate-500">{recentML.length} predictions analyzed</div>
           </CardContent>
         </Card>
       </div>
@@ -160,8 +158,8 @@ export default function MLDashboard() {
         <CardHeader>
           <CardTitle>Active Model Configuration</CardTitle>
           <p className="text-sm text-slate-500 mt-1">
-            Current model version: {activeWeights.model_version || 'v4.0'} • 
-            Last updated: {activeWeights.last_updated 
+            Current model version: {activeWeights.model_version || 'v4.0'} • Last updated:{' '}
+            {activeWeights.last_updated
               ? new Date(activeWeights.last_updated).toLocaleDateString()
               : 'Never'}
           </p>
@@ -169,15 +167,15 @@ export default function MLDashboard() {
         <CardContent>
           <div className="grid md:grid-cols-4 gap-4">
             <WeightDisplay label="Ranking" value={activeWeights.ranking_weight || 0.25} />
-            <WeightDisplay label="Serve" value={activeWeights.serve_weight || 0.20} />
+            <WeightDisplay label="Serve" value={activeWeights.serve_weight || 0.2} />
             <WeightDisplay label="Return" value={activeWeights.return_weight || 0.15} />
             <WeightDisplay label="Surface" value={activeWeights.surface_weight || 0.15} />
-            <WeightDisplay label="Head-to-Head" value={activeWeights.h2h_weight || 0.10} />
-            <WeightDisplay label="Form" value={activeWeights.form_weight || 0.10} />
+            <WeightDisplay label="Head-to-Head" value={activeWeights.h2h_weight || 0.1} />
+            <WeightDisplay label="Form" value={activeWeights.form_weight || 0.1} />
             <WeightDisplay label="Fatigue" value={activeWeights.fatigue_weight || 0.03} />
             <WeightDisplay label="Injury" value={activeWeights.injury_weight || 0.02} />
           </div>
-          
+
           {activeWeights.notes && (
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <div className="text-sm text-blue-800">
@@ -225,7 +223,9 @@ export default function MLDashboard() {
             <div className="flex-1">
               <h3 className="font-semibold text-purple-900 mb-2">About ML-Enhanced Predictions</h3>
               <p className="text-sm text-purple-800 mb-3">
-                Our machine learning model uses {Object.keys(activeWeights).filter(k => k.endsWith('_weight')).length} weighted features including:
+                Our machine learning model uses{' '}
+                {Object.keys(activeWeights).filter((k) => k.endsWith('_weight')).length} weighted
+                features including:
               </p>
               <ul className="text-sm text-purple-700 space-y-1 list-disc list-inside">
                 <li>Head-to-head historical data and surface-specific records</li>
@@ -236,7 +236,8 @@ export default function MLDashboard() {
                 <li>Tournament importance and round weighting</li>
               </ul>
               <p className="text-sm text-purple-800 mt-3">
-                The model continuously learns from match outcomes and user feedback to improve prediction accuracy over time.
+                The model continuously learns from match outcomes and user feedback to improve
+                prediction accuracy over time.
               </p>
             </div>
           </div>
@@ -248,20 +249,18 @@ export default function MLDashboard() {
 
 function WeightDisplay({ label, value }) {
   const percentage = (value * 100).toFixed(0);
-  
+
   return (
     <div className="p-3 bg-slate-50 rounded-lg">
       <div className="text-xs text-slate-500 mb-1">{label}</div>
       <div className="flex items-center gap-2">
         <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-purple-500 transition-all"
             style={{ width: `${value * 100}%` }}
           />
         </div>
-        <span className="text-sm font-bold text-slate-900 w-10 text-right">
-          {percentage}%
-        </span>
+        <span className="text-sm font-bold text-slate-900 w-10 text-right">{percentage}%</span>
       </div>
     </div>
   );
@@ -269,27 +268,25 @@ function WeightDisplay({ label, value }) {
 
 function ModelComparisonView({ feedback }) {
   const modelTypes = ['conservative', 'balanced', 'aggressive', 'ml_enhanced'];
-  
-  const comparison = modelTypes.map(type => {
-    const modelFeedback = feedback.filter(f => f.model_type === type);
+
+  const comparison = modelTypes.map((type) => {
+    const modelFeedback = feedback.filter((f) => f.model_type === type);
     const total = modelFeedback.length;
-    const correct = modelFeedback.filter(f => f.was_correct).length;
-    const accuracy = total > 0 ? (correct / total * 100) : 0;
-    
+    const correct = modelFeedback.filter((f) => f.was_correct).length;
+    const accuracy = total > 0 ? (correct / total) * 100 : 0;
+
     return { type, total, correct, accuracy };
   });
-  
+
   return (
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle>Model Performance Comparison</CardTitle>
-        <p className="text-sm text-slate-500 mt-1">
-          Compare accuracy across all prediction models
-        </p>
+        <p className="text-sm text-slate-500 mt-1">Compare accuracy across all prediction models</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {comparison.map(model => (
+          {comparison.map((model) => (
             <div key={model.type} className="p-4 rounded-lg border border-slate-200">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -313,10 +310,13 @@ function ModelComparisonView({ feedback }) {
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all ${
-                    model.type === 'ml_enhanced' ? 'bg-purple-500' :
-                    model.type === 'conservative' ? 'bg-blue-500' :
-                    model.type === 'balanced' ? 'bg-yellow-500' :
-                    'bg-red-500'
+                    model.type === 'ml_enhanced'
+                      ? 'bg-purple-500'
+                      : model.type === 'conservative'
+                      ? 'bg-blue-500'
+                      : model.type === 'balanced'
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500'
                   }`}
                   style={{ width: `${model.accuracy}%` }}
                 />

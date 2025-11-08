@@ -1,19 +1,25 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Download, Sparkles } from "lucide-react";
-import PlayerCard from "../components/players/PlayerCard";
-import PlayerStatsModal from "../components/players/PlayerStatsModal";
-import PlayerForm from "../components/players/PlayerForm";
-import { generateSamplePlayers } from "../utils/sampleData.js";
-import { toast } from "sonner";
+import React, { useCallback, useMemo, useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Plus, Search, Download, Sparkles } from 'lucide-react';
+import PlayerCard from '../components/players/PlayerCard';
+import PlayerStatsModal from '../components/players/PlayerStatsModal';
+import PlayerForm from '../components/players/PlayerForm';
+import { generateSamplePlayers } from '../utils/sampleData.js';
+import { toast } from 'sonner';
 
 export default function Players() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [surfaceFilter, setSurfaceFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [surfaceFilter, setSurfaceFilter] = useState('all');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -29,11 +35,13 @@ export default function Players() {
   const handleGenerateSampleData = async () => {
     setGenerating(true);
     try {
-      const created = await generateSamplePlayers();
+      const created = await generateSamplePlayers((payload) =>
+        base44.entities.Player.create(payload),
+      );
       toast.success(`Generated ${created.length} sample players!`);
       queryClient.invalidateQueries({ queryKey: ['players'] });
     } catch (error) {
-      toast.error("Failed to generate sample data");
+      toast.error('Failed to generate sample data');
       console.error(error);
     } finally {
       setGenerating(false);
@@ -42,33 +50,35 @@ export default function Players() {
 
   const filteredPlayers = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
-    return players.filter(player => {
-      const searchMatch = (
+    return players.filter((player) => {
+      const searchMatch =
         (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
         (player.first_name || '').toLowerCase().includes(searchLower) ||
         (player.last_name || '').toLowerCase().includes(searchLower) ||
-        (player.nationality || player.country || '').toLowerCase().includes(searchLower)
-      );
-  
+        (player.nationality || player.country || '').toLowerCase().includes(searchLower);
+
       if (!searchMatch) return false;
-  
+
       if (surfaceFilter !== 'all') {
         const surfaceKey = `${surfaceFilter}_court_win_pct`;
         if (!player[surfaceKey]) return false;
       }
-  
+
       return true;
     });
   }, [players, searchQuery, surfaceFilter]);
 
-  const prefetchPlayer = useCallback((playerId) => {
-    if (!playerId) return;
-    queryClient.prefetchQuery({
-      queryKey: ['player', playerId],
-      queryFn: () => base44.entities.Player.get(playerId),
-      staleTime: 1000 * 60 * 5,
-    });
-  }, [queryClient]);
+  const prefetchPlayer = useCallback(
+    (playerId) => {
+      if (!playerId) return;
+      queryClient.prefetchQuery({
+        queryKey: ['player', playerId],
+        queryFn: () => base44.entities.Player.get(playerId),
+        staleTime: 1000 * 60 * 5,
+      });
+    },
+    [queryClient],
+  );
 
   const handleEdit = (player) => {
     setEditingPlayer(player);
@@ -86,11 +96,7 @@ export default function Players() {
         </div>
         <div className="flex gap-2">
           {players.length === 0 && (
-            <Button
-              variant="outline"
-              onClick={handleGenerateSampleData}
-              disabled={generating}
-            >
+            <Button variant="outline" onClick={handleGenerateSampleData} disabled={generating}>
               {generating ? (
                 <>Generating...</>
               ) : (
@@ -101,7 +107,7 @@ export default function Players() {
               )}
             </Button>
           )}
-          <Button 
+          <Button
             className="bg-emerald-600 hover:bg-emerald-700"
             onClick={() => {
               setEditingPlayer(null);
@@ -147,13 +153,17 @@ export default function Players() {
         <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
           <div className="text-sm text-slate-500">With Complete Stats</div>
           <div className="text-2xl font-bold text-emerald-600 mt-1">
-            {players.filter(p => p.first_serve_pct && p.first_return_win_pct && p.hard_court_win_pct).length}
+            {
+              players.filter(
+                (p) => p.first_serve_pct && p.first_return_win_pct && p.hard_court_win_pct,
+              ).length
+            }
           </div>
         </div>
         <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
           <div className="text-sm text-slate-500">Top 100</div>
           <div className="text-2xl font-bold text-blue-600 mt-1">
-            {players.filter(p => p.current_rank && p.current_rank <= 100).length}
+            {players.filter((p) => p.current_rank && p.current_rank <= 100).length}
           </div>
         </div>
         <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -188,29 +198,34 @@ export default function Players() {
           </div>
           <h3 className="text-xl font-semibold text-slate-900 mb-2">No players found</h3>
           <p className="text-slate-500 mb-4">
-            {searchQuery || surfaceFilter !== 'all' 
-              ? "Try adjusting your search or filters" 
-              : "Start by adding your first player"}
+            {searchQuery || surfaceFilter !== 'all'
+              ? 'Try adjusting your search or filters'
+              : 'Start by adding your first player'}
           </p>
           {players.length === 0 ? (
             <div className="flex gap-2 justify-center">
               <Button onClick={handleGenerateSampleData} variant="outline" disabled={generating}>
                 <Sparkles className="w-4 h-4 mr-2" />
-                {generating ? "Generating..." : "Generate Sample Data"}
+                {generating ? 'Generating...' : 'Generate Sample Data'}
               </Button>
-              <Button onClick={() => {
-                setEditingPlayer(null);
-                setShowForm(true);
-              }}>
+              <Button
+                onClick={() => {
+                  setEditingPlayer(null);
+                  setShowForm(true);
+                }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Player
               </Button>
             </div>
           ) : (
-            <Button onClick={() => {
-              setSearchQuery("");
-              setSurfaceFilter("all");
-            }} variant="outline">
+            <Button
+              onClick={() => {
+                setSearchQuery('');
+                setSurfaceFilter('all');
+              }}
+              variant="outline"
+            >
               Clear Filters
             </Button>
           )}

@@ -4,7 +4,7 @@
  */
 export const generateMLPrediction = (match, player1, player2, weights = null) => {
   if (!match || !player1 || !player2) {
-    throw new Error("Match and both players required for ML prediction");
+    throw new Error('Match and both players required for ML prediction');
   }
 
   const features = extractFeatures(player1, player2, match);
@@ -12,15 +12,16 @@ export const generateMLPrediction = (match, player1, player2, weights = null) =>
   const { p1Prob, p2Prob } = calculateMLProbability(features, w);
   const predictedWinnerId = p1Prob > p2Prob ? player1.id : player2.id;
   const maxProb = Math.max(p1Prob, p2Prob);
-  const confidence_level = maxProb < 0.55 ? "low" : maxProb <= 0.7 ? "medium" : "high";
-  const predicted_sets = match.best_of === 5 ? (maxProb > 0.65 ? "3-0" : "3-1") : (maxProb > 0.65 ? "2-0" : "2-1");
+  const confidence_level = maxProb < 0.55 ? 'low' : maxProb <= 0.7 ? 'medium' : 'high';
+  const predicted_sets =
+    match.best_of === 5 ? (maxProb > 0.65 ? '3-0' : '3-1') : maxProb > 0.65 ? '2-0' : '2-1';
   const prob_straight_sets = Math.round((maxProb - 0.5) * 200);
   const prob_deciding_set = Math.max(0, 100 - prob_straight_sets);
   const createdAt = new Date().toISOString();
 
   return {
     match_id: match.id,
-    model_type: "ml",
+    model_type: 'ml',
     predicted_winner_id: predictedWinnerId,
     player1_win_probability: round2(p1Prob),
     player2_win_probability: round2(p2Prob),
@@ -87,4 +88,3 @@ const generateMLPointData = (p1BaseProb, _p2Base, bestOf) => {
   }
   return data;
 };
-

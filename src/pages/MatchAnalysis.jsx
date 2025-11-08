@@ -1,34 +1,39 @@
-
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, TrendingUp, AlertCircle, Brain } from "lucide-react"; // Added Brain
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Loader2, TrendingUp, AlertCircle, Brain } from 'lucide-react'; // Added Brain
+import { Alert, AlertDescription } from '@/components/ui/alert';
 // import ProbabilityChart from "../components/match/ProbabilityChart"; // Removed as predictions are navigated away
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { generateAllPredictions } from "../utils/predictionGenerator.js";
-import { generateMLPrediction } from "../utils/mlPrediction.js"; // Added ML Prediction
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { generateAllPredictions } from '../utils/predictionGenerator.js';
+import { generateMLPrediction } from '../utils/mlPrediction.js'; // Added ML Prediction
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function MatchAnalysis() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    player1_id: "",
-    player2_id: "",
-    tournament_name: "",
-    round: "QF",
-    surface: "hard",
+    player1_id: '',
+    player2_id: '',
+    tournament_name: '',
+    round: 'QF',
+    surface: 'hard',
     best_of: 3,
-    tour_level: "ATP",
+    tour_level: 'ATP',
     utc_start: new Date().toISOString(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
@@ -50,8 +55,8 @@ export default function MatchAnalysis() {
       // Create the match with enhanced fields
       const match = await base44.entities.Match.create(matchData);
 
-      const player1 = players.find(p => p.id === matchData.player1_id);
-      const player2 = players.find(p => p.id === matchData.player2_id);
+      const player1 = players.find((p) => p.id === matchData.player1_id);
+      const player2 = players.find((p) => p.id === matchData.player2_id);
 
       let predictions;
       if (mlEnhanced) {
@@ -65,7 +70,7 @@ export default function MatchAnalysis() {
 
       // Save all predictions to database
       const createdPredictions = await Promise.all(
-        predictions.map(pred => base44.entities.Prediction.create(pred))
+        predictions.map((pred) => base44.entities.Prediction.create(pred))
       );
 
       return { match, predictions: createdPredictions };
@@ -73,13 +78,22 @@ export default function MatchAnalysis() {
     onSuccess: ({ match, predictions }) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       queryClient.invalidateQueries({ queryKey: ['predictions'] });
-      toast({ title: 'Success', description: mlEnhanced ? 'ML-enhanced prediction generated!' : `Generated ${predictions.length} predictions successfully!` });
-      navigate(createPageUrl("Predictions"));
+      toast({
+        title: 'Success',
+        description: mlEnhanced
+          ? 'ML-enhanced prediction generated!'
+          : `Generated ${predictions.length} predictions successfully!`,
+      });
+      navigate(createPageUrl('Predictions'));
     },
     onError: (error) => {
-      toast({ title: 'Error', description: 'Failed to generate predictions. Please try again.', variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: 'Failed to generate predictions. Please try again.',
+        variant: 'destructive',
+      });
       console.error(error);
-      setError("Failed to generate predictions. Please check your inputs and try again.");
+      setError('Failed to generate predictions. Please check your inputs and try again.');
     },
   });
 
@@ -87,12 +101,12 @@ export default function MatchAnalysis() {
     e.preventDefault(); // Prevent default form submission behavior
 
     if (!formData.player1_id || !formData.player2_id) {
-      setError("Please select both players");
+      setError('Please select both players');
       return;
     }
 
     if (formData.player1_id === formData.player2_id) {
-      setError("Please select different players");
+      setError('Please select different players');
       return;
     }
 
@@ -101,7 +115,7 @@ export default function MatchAnalysis() {
     try {
       await generatePredictionsMutation.mutateAsync({
         ...formData,
-        status: 'scheduled'
+        status: 'scheduled',
       });
     } catch (err) {
       // Error handled by the mutation's onError callback
@@ -112,7 +126,9 @@ export default function MatchAnalysis() {
     <div className="p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
       <div>
         <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Match Analysis</h1>
-        <p className="text-slate-500 mt-2">Generate probability predictions using advanced statistical models</p>
+        <p className="text-slate-500 mt-2">
+          Generate probability predictions using advanced statistical models
+        </p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -123,18 +139,22 @@ export default function MatchAnalysis() {
               <CardTitle>Match Configuration</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6"> {/* Wrapped form fields in <form> */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {' '}
+                {/* Wrapped form fields in <form> */}
                 <div>
                   <Label htmlFor="player1">Player 1</Label>
                   <Select
                     value={formData.player1_id}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, player1_id: value }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, player1_id: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select player" />
                     </SelectTrigger>
                     <SelectContent>
-                      {players.map(player => (
+                      {players.map((player) => (
                         <SelectItem key={player.id} value={player.id}>
                           {player.display_name || player.name}
                         </SelectItem>
@@ -142,18 +162,19 @@ export default function MatchAnalysis() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label htmlFor="player2">Player 2</Label>
                   <Select
                     value={formData.player2_id}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, player2_id: value }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, player2_id: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select player" />
                     </SelectTrigger>
                     <SelectContent>
-                      {players.map(player => (
+                      {players.map((player) => (
                         <SelectItem key={player.id} value={player.id}>
                           {player.display_name || player.name}
                         </SelectItem>
@@ -161,22 +182,22 @@ export default function MatchAnalysis() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label htmlFor="tournament_name">Tournament</Label>
                   <Input
                     id="tournament_name"
                     value={formData.tournament_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tournament_name: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, tournament_name: e.target.value }))
+                    }
                     placeholder="e.g., Australian Open"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="round">Round</Label>
                   <Select
                     value={formData.round}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, round: value }))}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, round: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -192,12 +213,11 @@ export default function MatchAnalysis() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label htmlFor="surface">Surface</Label>
                   <Select
                     value={formData.surface}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, surface: value }))}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, surface: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -210,12 +230,13 @@ export default function MatchAnalysis() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label htmlFor="best_of">Best Of</Label>
                   <Select
                     value={formData.best_of.toString()}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, best_of: parseInt(value) }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, best_of: parseInt(value) }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -226,7 +247,6 @@ export default function MatchAnalysis() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 {/* ML Enhancement Toggle */}
                 <div className="p-4 rounded-lg border-2 border-purple-200 bg-purple-50">
                   <div className="flex items-start gap-3">
@@ -238,26 +258,30 @@ export default function MatchAnalysis() {
                       className="mt-1"
                     />
                     <div className="flex-1">
-                      <label htmlFor="ml-enhanced" className="font-semibold text-purple-900 flex items-center gap-2 cursor-pointer">
+                      <label
+                        htmlFor="ml-enhanced"
+                        className="font-semibold text-purple-900 flex items-center gap-2 cursor-pointer"
+                      >
                         <Brain className="w-5 h-5" />
                         Use ML-Enhanced Prediction
                         <Badge className="bg-purple-600 text-white">NEW</Badge>
                       </label>
                       <p className="text-sm text-purple-700 mt-1">
-                        Leverages machine learning with head-to-head data, recent form, fatigue indicators, and injury status for improved accuracy.
-                        {mlEnhanced ? ' Will generate 1 comprehensive ML prediction.' : ' Unchecked will generate 3 traditional model predictions.'}
+                        Leverages machine learning with head-to-head data, recent form, fatigue
+                        indicators, and injury status for improved accuracy.
+                        {mlEnhanced
+                          ? ' Will generate 1 comprehensive ML prediction.'
+                          : ' Unchecked will generate 3 traditional model predictions.'}
                       </p>
                     </div>
                   </div>
                 </div>
-
                 {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-
                 <Button
                   type="submit" // Changed to type="submit"
                   className="w-full bg-emerald-600 hover:bg-emerald-700"
@@ -304,10 +328,8 @@ export default function MatchAnalysis() {
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
                   Predictions Generated!
                 </h3>
-                <p className="text-slate-500 mb-4">
-                  Redirecting you to view the predictions...
-                </p>
-                <Button onClick={() => navigate(createPageUrl("Predictions"))}>
+                <p className="text-slate-500 mb-4">Redirecting you to view the predictions...</p>
+                <Button onClick={() => navigate(createPageUrl('Predictions'))}>
                   Go to Predictions Now
                 </Button>
               </CardContent>
@@ -322,7 +344,8 @@ export default function MatchAnalysis() {
                   Failed to Generate Predictions
                 </h3>
                 <p className="text-slate-500 mb-4">
-                  An error occurred: {generatePredictionsMutation.error?.message || "Please try again."}
+                  An error occurred:{' '}
+                  {generatePredictionsMutation.error?.message || 'Please try again.'}
                 </p>
                 <Button onClick={handleSubmit} className="mt-4">
                   Try Again
@@ -331,28 +354,34 @@ export default function MatchAnalysis() {
             </Card>
           )}
 
-          {!generatePredictionsMutation.isPending && !generatePredictionsMutation.isSuccess && !generatePredictionsMutation.isError && (
-            <Card className="shadow-md">
-              <CardContent className="py-16 text-center">
-                <TrendingUp className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  Ready to Analyze
-                </h3>
-                <p className="text-slate-500 mb-4">
-                  Fill in the match details and click "Analyze Match" to generate predictions using three different models, or an ML-enhanced model.
-                </p>
-                <div className="max-w-md mx-auto mt-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                  <div className="text-sm text-emerald-800 font-medium mb-2">What you'll get:</div>
-                  <ul className="text-sm text-emerald-700 space-y-1 text-left">
-                    <li>• Three prediction models (Conservative, Balanced, Aggressive) or one ML-enhanced model</li>
-                    <li>• Probability analysis using advanced tennis statistics</li>
-                    <li>• AI-powered insights and key factors</li>
-                    <li>• Predictions viewable on a dedicated page</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {!generatePredictionsMutation.isPending &&
+            !generatePredictionsMutation.isSuccess &&
+            !generatePredictionsMutation.isError && (
+              <Card className="shadow-md">
+                <CardContent className="py-16 text-center">
+                  <TrendingUp className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Ready to Analyze</h3>
+                  <p className="text-slate-500 mb-4">
+                    Fill in the match details and click "Analyze Match" to generate predictions
+                    using three different models, or an ML-enhanced model.
+                  </p>
+                  <div className="max-w-md mx-auto mt-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <div className="text-sm text-emerald-800 font-medium mb-2">
+                      What you'll get:
+                    </div>
+                    <ul className="text-sm text-emerald-700 space-y-1 text-left">
+                      <li>
+                        • Three prediction models (Conservative, Balanced, Aggressive) or one
+                        ML-enhanced model
+                      </li>
+                      <li>• Probability analysis using advanced tennis statistics</li>
+                      <li>• AI-powered insights and key factors</li>
+                      <li>• Predictions viewable on a dedicated page</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
         </div>
       </div>
     </div>

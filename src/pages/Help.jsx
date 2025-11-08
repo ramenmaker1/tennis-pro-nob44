@@ -1,18 +1,23 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { 
-  BookOpen, 
-  Users, 
-  TrendingUp, 
-  BarChart3, 
-  Upload, 
-  Shield, 
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  BookOpen,
+  Users,
+  TrendingUp,
+  BarChart3,
+  Upload,
+  Shield,
   CheckCircle,
   HelpCircle,
-  Zap
-} from "lucide-react";
+  Zap,
+} from 'lucide-react';
 
 export default function Help() {
   return (
@@ -78,7 +83,8 @@ export default function Help() {
                     <ol className="list-decimal list-inside pl-2 space-y-1">
                       <li>Navigate to the Players page</li>
                       <li>Click "Add Player" button</li>
-                      <li>Fill in required fields:
+                      <li>
+                        Fill in required fields:
                         <ul className="list-disc list-inside pl-6 mt-1">
                           <li>First Name & Last Name (or Display Name)</li>
                           <li>Current Rank (optional but recommended)</li>
@@ -90,9 +96,11 @@ export default function Help() {
                       <li>Click "Add Player" to save</li>
                     </ol>
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-semibold text-slate-900 mb-1">Quick Mode vs Full Profile</h4>
+                    <h4 className="font-semibold text-slate-900 mb-1">
+                      Quick Mode vs Full Profile
+                    </h4>
                     <p>
                       Quick Mode: Add essential info to get started quickly. Perfect for testing.
                     </p>
@@ -104,8 +112,8 @@ export default function Help() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Data Quality</h4>
                     <p>
-                      Players with complete serve, return, and surface statistics will produce the most accurate predictions.
-                      Aim for at least 70% data completeness.
+                      Players with complete serve, return, and surface statistics will produce the
+                      most accurate predictions. Aim for at least 70% data completeness.
                     </p>
                   </div>
                 </div>
@@ -135,27 +143,29 @@ export default function Help() {
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-slate-900 mb-1">Understanding the Three Models</h4>
+                    <h4 className="font-semibold text-slate-900 mb-1">
+                      Understanding the Three Models
+                    </h4>
                     <div className="space-y-2 mt-2">
                       <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <div className="font-semibold text-blue-900">Conservative Model</div>
                         <p className="text-blue-800 text-xs mt-1">
-                          Heavily favors higher-ranked players. Lower variance, more predictable outcomes.
-                          Best for: Matches with clear favorites.
+                          Heavily favors higher-ranked players. Lower variance, more predictable
+                          outcomes. Best for: Matches with clear favorites.
                         </p>
                       </div>
                       <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                         <div className="font-semibold text-yellow-900">Balanced Model</div>
                         <p className="text-yellow-800 text-xs mt-1">
-                          Uses realistic ATP statistics with moderate variance. Most accurate representation.
-                          Best for: General use, most reliable predictions.
+                          Uses realistic ATP statistics with moderate variance. Most accurate
+                          representation. Best for: General use, most reliable predictions.
                         </p>
                       </div>
                       <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                         <div className="font-semibold text-red-900">Aggressive Model</div>
                         <p className="text-red-800 text-xs mt-1">
-                          Higher variance allows for upsets and momentum swings. Captures unpredictable matches.
-                          Best for: Matches between evenly-matched players.
+                          Higher variance allows for upsets and momentum swings. Captures
+                          unpredictable matches. Best for: Matches between evenly-matched players.
                         </p>
                       </div>
                     </div>
@@ -165,7 +175,9 @@ export default function Help() {
                     <h4 className="font-semibold text-slate-900 mb-1">Reading the Results</h4>
                     <ul className="list-disc list-inside pl-2 space-y-1">
                       <li>Win Probabilities: Percentage chance each player will win</li>
-                      <li>Confidence Level: High/Medium/Low based on how decisive the prediction is</li>
+                      <li>
+                        Confidence Level: High/Medium/Low based on how decisive the prediction is
+                      </li>
                       <li>Predicted Sets: Expected final set score</li>
                       <li>Straight Sets Probability: Chance of a 2-0 (or 3-0) victory</li>
                       <li>Deciding Set Probability: Chance of going to a third (or fifth) set</li>
@@ -236,7 +248,11 @@ export default function Help() {
                     <h4 className="font-semibold text-slate-900 mb-1">CSV Format</h4>
                     <p>Required columns:</p>
                     <ul className="list-disc list-inside pl-2 mt-1">
-                      <li><code className="bg-slate-100 px-1 rounded">display_name</code> OR <code className="bg-slate-100 px-1 rounded">first_name</code> + <code className="bg-slate-100 px-1 rounded">last_name</code></li>
+                      <li>
+                        <code className="bg-slate-100 px-1 rounded">display_name</code> OR{' '}
+                        <code className="bg-slate-100 px-1 rounded">first_name</code> +{' '}
+                        <code className="bg-slate-100 px-1 rounded">last_name</code>
+                      </li>
                     </ul>
                     <p className="mt-2">Optional but recommended:</p>
                     <ul className="list-disc list-inside pl-2 text-xs">
@@ -250,7 +266,8 @@ export default function Help() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Auto-Generated Aliases</h4>
                     <p>
-                      The system automatically creates name variations (e.g., "R. Federer", "Federer") to help with search and matching.
+                      The system automatically creates name variations (e.g., "R. Federer",
+                      "Federer") to help with search and matching.
                     </p>
                   </div>
                 </div>
@@ -269,8 +286,8 @@ export default function Help() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Tracking Data Sources</h4>
                     <p>
-                      Use the Compliance dashboard to track where your player statistics come from and ensure
-                      you have proper licensing/permissions.
+                      Use the Compliance dashboard to track where your player statistics come from
+                      and ensure you have proper licensing/permissions.
                     </p>
                   </div>
 
@@ -300,8 +317,8 @@ export default function Help() {
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Monitoring Data Quality</h4>
                     <p>
-                      The Data Quality page helps you identify players with incomplete statistics that
-                      may affect prediction accuracy.
+                      The Data Quality page helps you identify players with incomplete statistics
+                      that may affect prediction accuracy.
                     </p>
                   </div>
 
@@ -318,8 +335,11 @@ export default function Help() {
 
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Improving Data Quality</h4>
-                    <p>Focus on completing serve and return statistics first, as these have the biggest impact on prediction accuracy.
-                    Surface-specific win percentages are also crucial for accurate surface-based predictions.</p>
+                    <p>
+                      Focus on completing serve and return statistics first, as these have the
+                      biggest impact on prediction accuracy. Surface-specific win percentages are
+                      also crucial for accurate surface-based predictions.
+                    </p>
                   </div>
                 </div>
               </AccordionContent>
@@ -344,7 +364,10 @@ export default function Help() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">•</span>
-              <span>Use Conservative model when there's a clear ranking difference (e.g., Top 10 vs Top 50)</span>
+              <span>
+                Use Conservative model when there's a clear ranking difference (e.g., Top 10 vs Top
+                50)
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">•</span>
@@ -356,7 +379,9 @@ export default function Help() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">•</span>
-              <span>Surface-specific win percentages significantly improve surface-based predictions</span>
+              <span>
+                Surface-specific win percentages significantly improve surface-based predictions
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">•</span>
@@ -379,7 +404,10 @@ export default function Help() {
 
 function QuickStartCard({ icon: Icon, title, description, link }) {
   return (
-    <a href={link} className="block p-4 rounded-lg border-2 border-slate-200 hover:border-emerald-300 transition-colors bg-white">
+    <a
+      href={link}
+      className="block p-4 rounded-lg border-2 border-slate-200 hover:border-emerald-300 transition-colors bg-white"
+    >
       <div className="flex items-center gap-3 mb-2">
         <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
           <Icon className="w-5 h-5 text-emerald-600" />

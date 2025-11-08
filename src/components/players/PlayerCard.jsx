@@ -1,10 +1,9 @@
-
-import React, { memo, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { TrendingUp, Target, Zap, Edit, Eye } from "lucide-react";
-import { calculateDataCompleteness, getDataQualityBadge } from "../../utils/sampleData.js";
+import React, { memo, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, Target, Zap, Edit, Eye } from 'lucide-react';
+import { calculateDataCompleteness, getDataQualityBadge } from '../../utils/sampleData.js';
 
 function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
   const age = useMemo(
@@ -15,7 +14,7 @@ function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
   const qualityBadge = useMemo(() => getDataQualityBadge(completeness), [completeness]);
 
   return (
-    <Card 
+    <Card
       className="hover:shadow-lg transition-all duration-300 bg-white border-slate-200 group relative overflow-hidden"
       onMouseEnter={onMouseEnter}
     >
@@ -28,21 +27,25 @@ function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
 
       <CardContent className="p-6">
         <div className="flex items-start gap-4 mb-4">
-          <div 
+          <div
             className="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 transition-transform"
             onClick={onClick}
           >
             {player.photo_url ? (
-              <img src={player.photo_url} alt={player.display_name || player.name} className="w-full h-full object-cover" />
+              <img
+                src={player.photo_url}
+                alt={player.display_name || player.name}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <span className="text-2xl font-bold text-slate-600">
                 {(player.display_name || player.name)?.charAt(0)}
               </span>
             )}
           </div>
-          
+
           <div className="flex-1">
-            <h3 
+            <h3
               className="font-bold text-slate-900 text-lg group-hover:text-emerald-600 transition-colors cursor-pointer"
               onClick={onClick}
             >
@@ -52,9 +55,7 @@ function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
               {player.nationality && (
                 <span className="text-sm text-slate-500">{player.nationality}</span>
               )}
-              {age && (
-                <span className="text-xs text-slate-400">• {age} yrs</span>
-              )}
+              {age && <span className="text-xs text-slate-400">• {age} yrs</span>}
               {player.current_rank && (
                 <Badge variant="outline" className="text-xs">
                   #{player.current_rank}
@@ -95,7 +96,10 @@ function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
               <TrendingUp className="w-3 h-3 text-orange-600" />
             </div>
             <div className="text-lg font-bold text-orange-700">
-              {player.break_points_converted_pct?.toFixed(0) || player.break_points_converted || '-'}%
+              {player.break_points_converted_pct?.toFixed(0) ||
+                player.break_points_converted ||
+                '-'}
+              %
             </div>
             <div className="text-xs text-slate-600">BP Conv</div>
           </div>

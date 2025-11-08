@@ -1,13 +1,12 @@
-
-import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { AlertTriangle, CheckCircle, TrendingDown, Edit } from "lucide-react";
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { AlertTriangle, CheckCircle, TrendingDown, Edit } from 'lucide-react';
 
 export default function DataQuality() {
   const { data: players, isLoading } = useQuery({
@@ -17,38 +16,45 @@ export default function DataQuality() {
   });
 
   // Calculate quality metrics
-  const playersWithoutRank = players.filter(p => !p.current_rank);
-  const playersWithoutServeStats = players.filter(p => 
-    !p.first_serve_pct || !p.first_serve_win_pct || !p.second_serve_win_pct
+  const playersWithoutRank = players.filter((p) => !p.current_rank);
+  const playersWithoutServeStats = players.filter(
+    (p) => !p.first_serve_pct || !p.first_serve_win_pct || !p.second_serve_win_pct
   );
-  const playersWithoutReturnStats = players.filter(p => 
-    !p.first_return_win_pct || !p.second_return_win_pct
+  const playersWithoutReturnStats = players.filter(
+    (p) => !p.first_return_win_pct || !p.second_return_win_pct
   );
-  const playersWithoutSurfaceStats = players.filter(p => 
-    !p.hard_court_win_pct || !p.clay_court_win_pct || !p.grass_court_win_pct
+  const playersWithoutSurfaceStats = players.filter(
+    (p) => !p.hard_court_win_pct || !p.clay_court_win_pct || !p.grass_court_win_pct
   );
-  const unverifiedPlayers = players.filter(p => !p.is_verified);
-  const playersWithoutSource = players.filter(p => !p.data_source);
+  const unverifiedPlayers = players.filter((p) => !p.is_verified);
+  const playersWithoutSource = players.filter((p) => !p.data_source);
 
   // Calculate completeness score for each player
   const calculateCompleteness = (player) => {
     const fields = [
-      'current_rank', 'first_serve_pct', 'first_serve_win_pct', 'second_serve_win_pct',
-      'first_return_win_pct', 'second_return_win_pct', 'break_points_converted_pct',
-      'hard_court_win_pct', 'clay_court_win_pct', 'grass_court_win_pct'
+      'current_rank',
+      'first_serve_pct',
+      'first_serve_win_pct',
+      'second_serve_win_pct',
+      'first_return_win_pct',
+      'second_return_win_pct',
+      'break_points_converted_pct',
+      'hard_court_win_pct',
+      'clay_court_win_pct',
+      'grass_court_win_pct',
     ];
-    
+
     let completed = 0;
-    fields.forEach(field => {
+    fields.forEach((field) => {
       if (player[field] !== null && player[field] !== undefined) completed++;
     });
-    
+
     return Math.round((completed / fields.length) * 100);
   };
 
   const incompletePlayers = players
-    .map(p => ({ ...p, completeness: calculateCompleteness(p) }))
-    .filter(p => p.completeness < 70)
+    .map((p) => ({ ...p, completeness: calculateCompleteness(p) }))
+    .filter((p) => p.completeness < 70)
     .sort((a, b) => a.completeness - b.completeness)
     .slice(0, 20);
 
@@ -77,7 +83,9 @@ export default function DataQuality() {
               <div className="text-xs text-slate-500">No Serve Stats</div>
               <TrendingDown className="w-4 h-4 text-orange-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-900">{playersWithoutServeStats.length}</div>
+            <div className="text-2xl font-bold text-slate-900">
+              {playersWithoutServeStats.length}
+            </div>
           </CardContent>
         </Card>
 
@@ -87,7 +95,9 @@ export default function DataQuality() {
               <div className="text-xs text-slate-500">No Return Stats</div>
               <TrendingDown className="w-4 h-4 text-orange-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-900">{playersWithoutReturnStats.length}</div>
+            <div className="text-2xl font-bold text-slate-900">
+              {playersWithoutReturnStats.length}
+            </div>
           </CardContent>
         </Card>
 
@@ -97,7 +107,9 @@ export default function DataQuality() {
               <div className="text-xs text-slate-500">No Surface Stats</div>
               <TrendingDown className="w-4 h-4 text-red-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-900">{playersWithoutSurfaceStats.length}</div>
+            <div className="text-2xl font-bold text-slate-900">
+              {playersWithoutSurfaceStats.length}
+            </div>
           </CardContent>
         </Card>
 
@@ -138,11 +150,21 @@ export default function DataQuality() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-slate-700">Player</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Completeness</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Missing Data</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Source</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Actions</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-slate-700">
+                      Player
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Completeness
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Missing Data
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Source
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -154,7 +176,10 @@ export default function DataQuality() {
                     if (!player.hard_court_win_pct) issues.push('surface');
 
                     return (
-                      <tr key={player.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <tr
+                        key={player.id}
+                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                      >
                         <td className="py-3 px-2">
                           <div className="font-medium text-slate-900">
                             {player.display_name || player.name}
@@ -168,9 +193,11 @@ export default function DataQuality() {
                             <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
                               <div
                                 className={`h-full transition-all ${
-                                  player.completeness >= 70 ? 'bg-emerald-500' :
-                                  player.completeness >= 50 ? 'bg-yellow-500' :
-                                  'bg-red-500'
+                                  player.completeness >= 70
+                                    ? 'bg-emerald-500'
+                                    : player.completeness >= 50
+                                    ? 'bg-yellow-500'
+                                    : 'bg-red-500'
                                 }`}
                                 style={{ width: `${player.completeness}%` }}
                               />
@@ -182,7 +209,7 @@ export default function DataQuality() {
                         </td>
                         <td className="py-3 px-2 text-center">
                           <div className="flex gap-1 justify-center flex-wrap">
-                            {issues.map(issue => (
+                            {issues.map((issue) => (
                               <Badge key={issue} variant="outline" className="text-xs">
                                 {issue}
                               </Badge>
@@ -190,12 +217,10 @@ export default function DataQuality() {
                           </div>
                         </td>
                         <td className="py-3 px-2 text-center text-sm text-slate-600">
-                          {player.data_source || (
-                            <span className="text-yellow-600">Not set</span>
-                          )}
+                          {player.data_source || <span className="text-yellow-600">Not set</span>}
                         </td>
                         <td className="py-3 px-2 text-center">
-                          <Link to={createPageUrl("Players")}>
+                          <Link to={createPageUrl('Players')}>
                             <Button variant="outline" size="sm">
                               <Edit className="w-3 h-3 mr-1" />
                               Edit
@@ -228,7 +253,10 @@ export default function DataQuality() {
               <ul className="text-sm text-emerald-800 space-y-1 list-disc list-inside">
                 <li>Prioritize completing serve and return stats for accurate predictions</li>
                 <li>Surface-specific win percentages significantly improve model accuracy</li>
-                <li>Always set the <code className="bg-emerald-100 px-1 rounded">data_source</code> field to track data origin</li>
+                <li>
+                  Always set the <code className="bg-emerald-100 px-1 rounded">data_source</code>{' '}
+                  field to track data origin
+                </li>
                 <li>Use the bulk import feature for adding multiple players efficiently</li>
                 <li>Mark players as verified after reviewing their statistics</li>
               </ul>

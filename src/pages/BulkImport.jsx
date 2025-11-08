@@ -1,17 +1,16 @@
-
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Upload, Download, AlertCircle, CheckCircle, FileText } from "lucide-react";
-import ImportPreview from "../components/admin/ImportPreview";
-import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from "../utils/csvParser.js";
-import { generatePlayerAliases, createPlayerSlug } from "../utils/aliasGenerator.js";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Upload, Download, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+import ImportPreview from '../components/admin/ImportPreview';
+import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from '../utils/csvParser.js';
+import { generatePlayerAliases, createPlayerSlug } from '../utils/aliasGenerator.js';
+import { toast } from 'sonner';
 
 export default function BulkImport() {
   const queryClient = useQueryClient();
@@ -30,7 +29,7 @@ export default function BulkImport() {
     }
 
     setCsvFile(file);
-    
+
     try {
       const text = await file.text();
       const rows = parseCSV(text);
@@ -68,11 +67,13 @@ export default function BulkImport() {
 
     // Preload existing players once and create slug set
     const existing = await base44.entities.Player.list();
-    const existingSlugs = new Set(existing.map(p => p.slug || createPlayerSlug(p.display_name || p.name || p.full_name)));
+    const existingSlugs = new Set(
+      existing.map((p) => p.slug || createPlayerSlug(p.display_name || p.name || p.full_name))
+    );
 
     for (let i = 0; i < preview.length; i++) {
       const row = preview[i];
-      
+
       try {
         // Validate row
         const validatedData = validatePlayerImportRow(row);
@@ -95,17 +96,18 @@ export default function BulkImport() {
 
         // Generate and create aliases in parallel, ignore failures
         const aliases = generatePlayerAliases(player);
-        const aliasPromises = aliases.map((alias) => base44.entities.Alias.create({
-          player_id: player.id,
-          ...alias,
-          is_auto_generated: true,
-        }).catch((aliasError) => {
-          console.warn('Alias creation failed:', aliasError?.message || aliasError);
-        }));
+        const aliasPromises = aliases.map((alias) =>
+          base44.entities.Alias.create({
+            player_id: player.id,
+            ...alias,
+            is_auto_generated: true,
+          }).catch((aliasError) => {
+            console.warn('Alias creation failed:', aliasError?.message || aliasError);
+          })
+        );
         await Promise.allSettled(aliasPromises);
 
         success++;
-
       } catch (error) {
         errorDetails.push({
           row: i + 1,
@@ -178,12 +180,18 @@ export default function BulkImport() {
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <p>Required columns:</p>
               <ul className="list-disc list-inside pl-4">
-                <li><code className="bg-slate-200 px-1 rounded">display_name</code> or <code className="bg-slate-200 px-1 rounded">first_name</code> + <code className="bg-slate-200 px-1 rounded">last_name</code></li>
+                <li>
+                  <code className="bg-slate-200 px-1 rounded">display_name</code> or{' '}
+                  <code className="bg-slate-200 px-1 rounded">first_name</code> +{' '}
+                  <code className="bg-slate-200 px-1 rounded">last_name</code>
+                </li>
               </ul>
-              
+
               <p className="mt-3">Optional columns:</p>
               <ul className="list-disc list-inside pl-4 text-xs">
-                <li>birth_year, nationality, height_cm, plays, current_rank, peak_rank, elo_rating</li>
+                <li>
+                  birth_year, nationality, height_cm, plays, current_rank, peak_rank, elo_rating
+                </li>
                 <li>first_serve_pct, first_serve_win_pct, second_serve_win_pct</li>
                 <li>first_return_win_pct, break_points_converted_pct</li>
                 <li>hard_court_win_pct, clay_court_win_pct, grass_court_win_pct</li>
@@ -192,7 +200,7 @@ export default function BulkImport() {
 
               <div className="mt-3 p-3 bg-white rounded border border-slate-200 overflow-x-auto">
                 <pre className="text-xs">
-{`first_name,last_name,birth_year,nationality,current_rank,first_serve_win_pct
+                  {`first_name,last_name,birth_year,nationality,current_rank,first_serve_win_pct
 Roger,Federer,1981,SUI,5,78.5
 Rafael,Nadal,1986,ESP,2,72.3`}
                 </pre>
@@ -235,9 +243,7 @@ Rafael,Nadal,1986,ESP,2,72.3`}
         <Card className="shadow-md">
           <CardContent className="py-16 text-center">
             <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-emerald-600" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">
-              Importing Players...
-            </h3>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">Importing Players...</h3>
             <p className="text-slate-500">
               This may take a few moments. Please don't close this page.
             </p>
@@ -256,9 +262,7 @@ Rafael,Nadal,1986,ESP,2,72.3`}
                     <CheckCircle className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-emerald-900">
-                      {results.success}
-                    </div>
+                    <div className="text-3xl font-bold text-emerald-900">{results.success}</div>
                     <div className="text-sm text-emerald-700">Successfully Imported</div>
                   </div>
                 </div>
@@ -272,9 +276,7 @@ Rafael,Nadal,1986,ESP,2,72.3`}
                     <AlertCircle className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-red-900">
-                      {results.errors}
-                    </div>
+                    <div className="text-3xl font-bold text-red-900">{results.errors}</div>
                     <div className="text-sm text-red-700">Errors</div>
                   </div>
                 </div>
@@ -294,7 +296,10 @@ Rafael,Nadal,1986,ESP,2,72.3`}
                     <Alert key={idx} variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        <strong>Row {error.row} ({error.player}):</strong> {error.error}
+                        <strong>
+                          Row {error.row} ({error.player}):
+                        </strong>{' '}
+                        {error.error}
                       </AlertDescription>
                     </Alert>
                   ))}
@@ -316,7 +321,7 @@ Rafael,Nadal,1986,ESP,2,72.3`}
               Import Another File
             </Button>
             <Button
-              onClick={() => window.location.href = '/players'}
+              onClick={() => (window.location.href = '/players')}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
               View Players

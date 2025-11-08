@@ -1,7 +1,18 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, Calendar } from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { TrendingUp, Calendar } from 'lucide-react';
 
 export default function LearningAnalytics({ feedback }) {
   // Group by surface
@@ -15,9 +26,9 @@ export default function LearningAnalytics({ feedback }) {
     return acc;
   }, {});
 
-  const surfaceData = Object.keys(bySurface).map(surface => ({
+  const surfaceData = Object.keys(bySurface).map((surface) => ({
     surface: surface.charAt(0).toUpperCase() + surface.slice(1),
-    accuracy: (bySurface[surface].correct / bySurface[surface].total * 100).toFixed(1),
+    accuracy: ((bySurface[surface].correct / bySurface[surface].total) * 100).toFixed(1),
     total: bySurface[surface].total,
   }));
 
@@ -32,18 +43,20 @@ export default function LearningAnalytics({ feedback }) {
     return acc;
   }, {});
 
-  const confidenceData = ['low', 'medium', 'high'].map(level => ({
+  const confidenceData = ['low', 'medium', 'high'].map((level) => ({
     level: level.charAt(0).toUpperCase() + level.slice(1),
-    accuracy: byConfidence[level] ? (byConfidence[level].correct / byConfidence[level].total * 100).toFixed(1) : 0,
+    accuracy: byConfidence[level]
+      ? ((byConfidence[level].correct / byConfidence[level].total) * 100).toFixed(1)
+      : 0,
     total: byConfidence[level]?.total || 0,
   }));
 
   // Time series (last 30 days)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  const recentFeedback = feedback.filter(f => 
-    f.feedback_date && new Date(f.feedback_date) >= thirtyDaysAgo
+
+  const recentFeedback = feedback.filter(
+    (f) => f.feedback_date && new Date(f.feedback_date) >= thirtyDaysAgo
   );
 
   // Group by day
@@ -60,9 +73,9 @@ export default function LearningAnalytics({ feedback }) {
   const timeSeriesData = Object.keys(byDay)
     .sort((a, b) => new Date(a) - new Date(b))
     .slice(-14) // Last 14 days
-    .map(date => ({
+    .map((date) => ({
       date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      accuracy: (byDay[date].correct / byDay[date].total * 100).toFixed(1),
+      accuracy: ((byDay[date].correct / byDay[date].total) * 100).toFixed(1),
     }));
 
   return (
@@ -84,10 +97,10 @@ export default function LearningAnalytics({ feedback }) {
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="accuracy" 
-                  stroke="#8b5cf6" 
+                <Line
+                  type="monotone"
+                  dataKey="accuracy"
+                  stroke="#8b5cf6"
                   strokeWidth={3}
                   name="Accuracy (%)"
                 />
@@ -155,19 +168,19 @@ export default function LearningAnalytics({ feedback }) {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-4">
-            {confidenceData.map(item => (
+            {confidenceData.map((item) => (
               <div key={item.level} className="p-4 rounded-lg border border-slate-200">
                 <div className="text-sm text-slate-500 mb-1">{item.level} Confidence</div>
-                <div className="text-2xl font-bold text-slate-900 mb-1">
-                  {item.accuracy}%
-                </div>
+                <div className="text-2xl font-bold text-slate-900 mb-1">{item.accuracy}%</div>
                 <div className="text-xs text-slate-500">{item.total} predictions</div>
                 <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
-                      item.level === 'High' ? 'bg-emerald-500' :
-                      item.level === 'Medium' ? 'bg-yellow-500' :
-                      'bg-slate-400'
+                      item.level === 'High'
+                        ? 'bg-emerald-500'
+                        : item.level === 'Medium'
+                        ? 'bg-yellow-500'
+                        : 'bg-slate-400'
                     }`}
                     style={{ width: `${item.accuracy}%` }}
                   />

@@ -1,24 +1,32 @@
-
-import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { TrendingUp, Users, BarChart3, Plus, Calendar, Trophy, Target, Activity } from "lucide-react";
-import { format } from "date-fns";
-import { formatMatchTime } from "../utils/timezone.js";
-import ModelPerformanceChart from "../components/analytics/ModelPerformanceChart";
-import RecentPredictionsTable from "../components/analytics/RecentPredictionsTable";
-import EmptyState from "../components/EmptyState.jsx";
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import {
+  TrendingUp,
+  Users,
+  BarChart3,
+  Plus,
+  Calendar,
+  Trophy,
+  Target,
+  Activity,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { formatMatchTime } from '../utils/timezone.js';
+import ModelPerformanceChart from '../components/analytics/ModelPerformanceChart';
+import RecentPredictionsTable from '../components/analytics/RecentPredictionsTable';
+import EmptyState from '../components/EmptyState.jsx';
 import {
   getAccuracyByModel,
   getPredictionCountsByModel,
   calculateOverallAccuracy,
   getPredictionsByConfidence,
   getRecentTrends,
-} from "../utils/dashboardStats.js";
+} from '../utils/dashboardStats.js';
 
 export default function Dashboard() {
   const { data: players, isLoading: playersLoading } = useQuery({
@@ -63,8 +71,10 @@ export default function Dashboard() {
         <div className="h-96 bg-slate-200 rounded-lg animate-pulse" /> {/* Chart placeholder */}
         <div className="h-80 bg-slate-200 rounded-lg animate-pulse" /> {/* Table placeholder */}
         <div className="grid lg:grid-cols-2 gap-6">
-          <div className="h-96 bg-slate-200 rounded-lg animate-pulse" /> {/* Upcoming matches placeholder */}
-          <div className="h-96 bg-slate-200 rounded-lg animate-pulse" /> {/* Quick actions placeholder */}
+          <div className="h-96 bg-slate-200 rounded-lg animate-pulse" />{' '}
+          {/* Upcoming matches placeholder */}
+          <div className="h-96 bg-slate-200 rounded-lg animate-pulse" />{' '}
+          {/* Quick actions placeholder */}
         </div>
       </div>
     );
@@ -76,22 +86,26 @@ export default function Dashboard() {
   const overallAccuracy = calculateOverallAccuracy(predictions);
   const confidenceCounts = getPredictionsByConfidence(predictions);
   const recentTrends = getRecentTrends(predictions);
-  
-  const upcomingMatches = matches.filter(m => m.status === 'scheduled').slice(0, 5);
+
+  const upcomingMatches = matches.filter((m) => m.status === 'scheduled').slice(0, 5);
   const recentPredictions = predictions.slice(0, 10);
-  
-  const completedPredictions = predictions.filter(p => p.actual_winner_id);
-  const accurateCount = completedPredictions.filter(p => p.was_correct === true).length;
+
+  const completedPredictions = predictions.filter((p) => p.actual_winner_id);
+  const accurateCount = completedPredictions.filter((p) => p.was_correct === true).length;
 
   return (
     <div className="p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Match Analytics Dashboard</h1>
-          <p className="text-slate-500 mt-2">Advanced probability modeling for tennis predictions</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">
+            Match Analytics Dashboard
+          </h1>
+          <p className="text-slate-500 mt-2">
+            Advanced probability modeling for tennis predictions
+          </p>
         </div>
-        <Link to={createPageUrl("MatchAnalysis")}>
+        <Link to={createPageUrl('MatchAnalysis')}>
           <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-sm">
             <Plus className="w-4 h-4 mr-2" />
             New Analysis
@@ -105,11 +119,11 @@ export default function Dashboard() {
           icon={<BarChart3 className="w-6 h-6 text-emerald-600" />}
           title="No predictions yet"
           description="Create your first match analysis to see predictions here."
-          action={(
-            <Link to={createPageUrl("MatchAnalysis")}>
+          action={
+            <Link to={createPageUrl('MatchAnalysis')}>
               <Button>Create Match</Button>
             </Link>
-          )}
+          }
         />
       )}
 
@@ -118,7 +132,9 @@ export default function Dashboard() {
         <StatsCard
           title="Total Players"
           value={players.length}
-          subtitle={`${players.filter(p => p.current_rank && p.current_rank <= 100).length} in Top 100`}
+          subtitle={`${
+            players.filter((p) => p.current_rank && p.current_rank <= 100).length
+          } in Top 100`}
           icon={Users}
           gradient="from-blue-500 to-blue-600"
         />
@@ -132,7 +148,11 @@ export default function Dashboard() {
         <StatsCard
           title="Overall Accuracy"
           value={completedPredictions.length > 0 ? `${overallAccuracy.toFixed(1)}%` : 'N/A'}
-          subtitle={completedPredictions.length > 0 ? `${accurateCount}/${completedPredictions.length} correct` : 'No completed matches'}
+          subtitle={
+            completedPredictions.length > 0
+              ? `${accurateCount}/${completedPredictions.length} correct`
+              : 'No completed matches'
+          }
           icon={Target}
           gradient="from-orange-500 to-red-500"
         />
@@ -180,17 +200,13 @@ export default function Dashboard() {
       </div>
 
       {/* Model Performance Chart */}
-      <ModelPerformanceChart 
+      <ModelPerformanceChart
         accuracyByModel={accuracyByModel}
         predictionCounts={predictionCounts}
       />
 
       {/* Recent Predictions Table */}
-      <RecentPredictionsTable
-        predictions={recentPredictions}
-        matches={matches}
-        players={players}
-      />
+      <RecentPredictionsTable predictions={recentPredictions} matches={matches} players={players} />
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
@@ -213,7 +229,7 @@ export default function Dashboard() {
               <div className="text-center py-8 text-slate-500">
                 <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p className="mb-2">No scheduled matches</p>
-                <Link to={createPageUrl("MatchAnalysis")}>
+                <Link to={createPageUrl('MatchAnalysis')}>
                   <Button variant="outline" size="sm" className="mt-2">
                     Create Match Analysis
                   </Button>
@@ -230,17 +246,25 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid gap-4">
-              <Link to={createPageUrl("Players")} className="block">
-                <Button variant="outline" className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+              <Link to={createPageUrl('Players')} className="block">
+                <Button
+                  variant="outline"
+                  className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                >
                   <Users className="w-6 h-6" />
                   <div className="text-left">
                     <div className="font-semibold">Manage Players</div>
-                    <div className="text-xs text-slate-500">{players.length} players in database</div>
+                    <div className="text-xs text-slate-500">
+                      {players.length} players in database
+                    </div>
                   </div>
                 </Button>
               </Link>
-              <Link to={createPageUrl("MatchAnalysis")} className="block">
-                <Button variant="outline" className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+              <Link to={createPageUrl('MatchAnalysis')} className="block">
+                <Button
+                  variant="outline"
+                  className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                >
                   <TrendingUp className="w-6 h-6" />
                   <div className="text-left">
                     <div className="font-semibold">Analyze Match</div>
@@ -248,12 +272,17 @@ export default function Dashboard() {
                   </div>
                 </Button>
               </Link>
-              <Link to={createPageUrl("Predictions")} className="block">
-                <Button variant="outline" className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all">
+              <Link to={createPageUrl('Predictions')} className="block">
+                <Button
+                  variant="outline"
+                  className="w-full h-16 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                >
                   <BarChart3 className="w-6 h-6" />
                   <div className="text-left">
                     <div className="font-semibold">View All Predictions</div>
-                    <div className="text-xs text-slate-500">{predictions.length} total predictions</div>
+                    <div className="text-xs text-slate-500">
+                      {predictions.length} total predictions
+                    </div>
                   </div>
                 </Button>
               </Link>
@@ -268,15 +297,15 @@ export default function Dashboard() {
 function StatsCard({ title, value, subtitle, icon: Icon, gradient }) {
   return (
     <Card className="relative overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 rounded-full transform translate-x-12 -translate-y-12`} />
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 rounded-full transform translate-x-12 -translate-y-12`}
+      />
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm font-medium text-slate-500">{title}</p>
             <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
-            {subtitle && (
-              <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
-            )}
+            {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
           </div>
           <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-sm`}>
             <Icon className="w-6 h-6 text-white" />
@@ -288,14 +317,15 @@ function StatsCard({ title, value, subtitle, icon: Icon, gradient }) {
 }
 
 function MatchRow({ match, players }) {
-  const player1 = players.find(p => p.id === match.player1_id);
-  const player2 = players.find(p => p.id === match.player2_id);
+  const player1 = players.find((p) => p.id === match.player1_id);
+  const player2 = players.find((p) => p.id === match.player2_id);
 
   return (
     <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-emerald-300 transition-colors">
       <div className="flex-1">
         <div className="font-medium text-slate-900">
-          {player1?.display_name || player1?.name || 'Player 1'} vs {player2?.display_name || player2?.name || 'Player 2'}
+          {player1?.display_name || player1?.name || 'Player 1'} vs{' '}
+          {player2?.display_name || player2?.name || 'Player 2'}
         </div>
         <div className="text-sm text-slate-500 mt-1">
           {match.tournament_name || 'Tournament'} • {match.surface}

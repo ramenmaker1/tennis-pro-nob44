@@ -1,22 +1,28 @@
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Info, Zap, User } from "lucide-react";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, Info, Zap, User } from 'lucide-react';
 import {
   validatePercentage,
   validateRanking,
@@ -26,7 +32,7 @@ import {
   validateMomentum,
   generateSlug,
   getValidationError,
-} from "../../utils/validation";
+} from '../../utils/validation';
 
 export default function PlayerForm({ open, onClose, player = null }) {
   const queryClient = useQueryClient();
@@ -34,56 +40,57 @@ export default function PlayerForm({ open, onClose, player = null }) {
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     // Basic Info
-    first_name: player?.first_name || "",
-    last_name: player?.last_name || "",
-    display_name: player?.display_name || "",
-    slug: player?.slug || "",
-    birth_year: player?.birth_year || "",
-    nationality: player?.nationality || "",
-    height_cm: player?.height_cm || "",
-    plays: player?.plays || "Right",
-    photo_url: player?.photo_url || "",
-    
+    first_name: player?.first_name || '',
+    last_name: player?.last_name || '',
+    display_name: player?.display_name || '',
+    slug: player?.slug || '',
+    birth_year: player?.birth_year || '',
+    nationality: player?.nationality || '',
+    height_cm: player?.height_cm || '',
+    plays: player?.plays || 'Right',
+    photo_url: player?.photo_url || '',
+
     // Rankings & Ratings
-    current_rank: player?.current_rank || "",
-    peak_rank: player?.peak_rank || "",
-    elo_rating: player?.elo_rating || "",
-    
+    current_rank: player?.current_rank || '',
+    peak_rank: player?.peak_rank || '',
+    elo_rating: player?.elo_rating || '',
+
     // Serve Stats
-    first_serve_pct: player?.first_serve_pct || "",
-    first_serve_win_pct: player?.first_serve_win_pct || "",
-    second_serve_win_pct: player?.second_serve_win_pct || "",
-    aces_per_match: player?.aces_per_match || "",
-    double_faults_per_match: player?.double_faults_per_match || "",
-    
+    first_serve_pct: player?.first_serve_pct || '',
+    first_serve_win_pct: player?.first_serve_win_pct || '',
+    second_serve_win_pct: player?.second_serve_win_pct || '',
+    aces_per_match: player?.aces_per_match || '',
+    double_faults_per_match: player?.double_faults_per_match || '',
+
     // Return Stats
-    first_return_win_pct: player?.first_return_win_pct || "",
-    second_return_win_pct: player?.second_return_win_pct || "",
-    break_points_converted_pct: player?.break_points_converted_pct || "",
-    return_games_won_pct: player?.return_games_won_pct || "",
-    
+    first_return_win_pct: player?.first_return_win_pct || '',
+    second_return_win_pct: player?.second_return_win_pct || '',
+    break_points_converted_pct: player?.break_points_converted_pct || '',
+    return_games_won_pct: player?.return_games_won_pct || '',
+
     // Advanced Metrics
-    clutch_factor: player?.clutch_factor || "",
-    consistency_rating: player?.consistency_rating || "",
-    tiebreak_win_pct: player?.tiebreak_win_pct || "",
-    deuce_win_pct: player?.deuce_win_pct || "",
-    
+    clutch_factor: player?.clutch_factor || '',
+    consistency_rating: player?.consistency_rating || '',
+    tiebreak_win_pct: player?.tiebreak_win_pct || '',
+    deuce_win_pct: player?.deuce_win_pct || '',
+
     // Surface Performance
-    hard_court_win_pct: player?.hard_court_win_pct || "",
-    clay_court_win_pct: player?.clay_court_win_pct || "",
-    grass_court_win_pct: player?.grass_court_win_pct || "",
-    
+    hard_court_win_pct: player?.hard_court_win_pct || '',
+    clay_court_win_pct: player?.clay_court_win_pct || '',
+    grass_court_win_pct: player?.grass_court_win_pct || '',
+
     // Physical/Mental
-    fitness_rating: player?.fitness_rating || "",
-    momentum_rating: player?.momentum_rating || "",
-    
+    fitness_rating: player?.fitness_rating || '',
+    momentum_rating: player?.momentum_rating || '',
+
     // Admin
-    data_source: player?.data_source || "",
-    notes: player?.notes || "",
+    data_source: player?.data_source || '',
+    notes: player?.notes || '',
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: (data) => player ? base44.entities.Player.update(player.id, data) : base44.entities.Player.create(data),
+    mutationFn: (data) =>
+      player ? base44.entities.Player.update(player.id, data) : base44.entities.Player.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       onClose();
@@ -93,43 +100,64 @@ export default function PlayerForm({ open, onClose, player = null }) {
 
   const resetForm = () => {
     setFormData({
-      first_name: "", last_name: "", display_name: "", slug: "",
-      birth_year: "", nationality: "", height_cm: "", plays: "Right", photo_url: "",
-      current_rank: "", peak_rank: "", elo_rating: "",
-      first_serve_pct: "", first_serve_win_pct: "", second_serve_win_pct: "",
-      aces_per_match: "", double_faults_per_match: "",
-      first_return_win_pct: "", second_return_win_pct: "",
-      break_points_converted_pct: "", return_games_won_pct: "",
-      clutch_factor: "", consistency_rating: "", tiebreak_win_pct: "", deuce_win_pct: "",
-      hard_court_win_pct: "", clay_court_win_pct: "", grass_court_win_pct: "",
-      fitness_rating: "", momentum_rating: "",
-      data_source: "", notes: "",
+      first_name: '',
+      last_name: '',
+      display_name: '',
+      slug: '',
+      birth_year: '',
+      nationality: '',
+      height_cm: '',
+      plays: 'Right',
+      photo_url: '',
+      current_rank: '',
+      peak_rank: '',
+      elo_rating: '',
+      first_serve_pct: '',
+      first_serve_win_pct: '',
+      second_serve_win_pct: '',
+      aces_per_match: '',
+      double_faults_per_match: '',
+      first_return_win_pct: '',
+      second_return_win_pct: '',
+      break_points_converted_pct: '',
+      return_games_won_pct: '',
+      clutch_factor: '',
+      consistency_rating: '',
+      tiebreak_win_pct: '',
+      deuce_win_pct: '',
+      hard_court_win_pct: '',
+      clay_court_win_pct: '',
+      grass_court_win_pct: '',
+      fitness_rating: '',
+      momentum_rating: '',
+      data_source: '',
+      notes: '',
     });
     setErrors({});
     setMode('quick');
   };
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Auto-generate slug and display_name
     if (field === 'first_name' || field === 'last_name') {
       const firstName = field === 'first_name' ? value : formData.first_name;
       const lastName = field === 'last_name' ? value : formData.last_name;
       const fullName = `${firstName} ${lastName}`.trim();
-      
+
       if (fullName) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           display_name: fullName,
           slug: generateSlug(fullName),
         }));
       }
     }
-    
+
     // Clear error for this field
     if (errors[field]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -139,36 +167,58 @@ export default function PlayerForm({ open, onClose, player = null }) {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Required field
     if (!formData.display_name) {
-      newErrors.display_name = "Display name is required";
+      newErrors.display_name = 'Display name is required';
     }
-    
+
     // Validate percentage fields
     const percentageFields = [
-      'first_serve_pct', 'first_serve_win_pct', 'second_serve_win_pct',
-      'first_return_win_pct', 'second_return_win_pct', 'break_points_converted_pct',
-      'return_games_won_pct', 'clutch_factor', 'consistency_rating',
-      'tiebreak_win_pct', 'deuce_win_pct', 'hard_court_win_pct',
-      'clay_court_win_pct', 'grass_court_win_pct', 'fitness_rating'
+      'first_serve_pct',
+      'first_serve_win_pct',
+      'second_serve_win_pct',
+      'first_return_win_pct',
+      'second_return_win_pct',
+      'break_points_converted_pct',
+      'return_games_won_pct',
+      'clutch_factor',
+      'consistency_rating',
+      'tiebreak_win_pct',
+      'deuce_win_pct',
+      'hard_court_win_pct',
+      'clay_court_win_pct',
+      'grass_court_win_pct',
+      'fitness_rating',
     ];
-    
-    percentageFields.forEach(field => {
-      if (formData[field] !== '' && !validatePercentage(formData[field])) {
-        newErrors[field] = getValidationError('percentage', formData[field]);
+
+    percentageFields.forEach((field) => {
+      if (formData[field] !== '') {
+        const validationResult = validatePercentage(formData[field]);
+        if (validationResult !== true) {
+          newErrors[field] = validationResult;
+        }
       }
     });
-    
+
     // Validate other fields
-    if (formData.current_rank && !validateRanking(formData.current_rank)) {
-      newErrors.current_rank = getValidationError('ranking', formData.current_rank);
+    if (formData.current_rank) {
+      const rankingResult = validateRanking(formData.current_rank);
+      if (rankingResult !== true) {
+        newErrors.current_rank = rankingResult;
+      }
     }
-    if (formData.peak_rank && !validateRanking(formData.peak_rank)) {
-      newErrors.peak_rank = getValidationError('ranking', formData.peak_rank);
+    if (formData.peak_rank) {
+      const rankingResult = validateRanking(formData.peak_rank);
+      if (rankingResult !== true) {
+        newErrors.peak_rank = rankingResult;
+      }
     }
-    if (formData.elo_rating && !validateEloRating(formData.elo_rating)) {
-      newErrors.elo_rating = getValidationError('elo_rating', formData.elo_rating);
+    if (formData.elo_rating) {
+      const eloResult = validateEloRating(formData.elo_rating);
+      if (eloResult !== true) {
+        newErrors.elo_rating = eloResult;
+      }
     }
     if (formData.birth_year && !validateBirthYear(formData.birth_year)) {
       newErrors.birth_year = getValidationError('birth_year', formData.birth_year);
@@ -179,28 +229,37 @@ export default function PlayerForm({ open, onClose, player = null }) {
     if (formData.momentum_rating && !validateMomentum(formData.momentum_rating)) {
       newErrors.momentum_rating = getValidationError('momentum_rating', formData.momentum_rating);
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     const processedData = { ...formData };
-    
+
     // Convert numeric fields and remove empty strings
-    Object.keys(processedData).forEach(key => {
+    Object.keys(processedData).forEach((key) => {
       if (processedData[key] === '') {
         delete processedData[key];
-      } else if (typeof processedData[key] === 'string' && !isNaN(processedData[key]) && key !== 'slug') {
+      } else if (
+        typeof processedData[key] === 'string' &&
+        !isNaN(processedData[key]) &&
+        key !== 'slug'
+      ) {
         if (key.includes('_pct') || key.includes('rating') || key.includes('factor')) {
           processedData[key] = parseFloat(processedData[key]);
-        } else if (key.includes('rank') || key === 'birth_year' || key === 'height_cm' || key === 'elo_rating') {
+        } else if (
+          key.includes('rank') ||
+          key === 'birth_year' ||
+          key === 'height_cm' ||
+          key === 'elo_rating'
+        ) {
           processedData[key] = parseInt(processedData[key]);
         } else if (key.includes('per_match')) {
           processedData[key] = parseFloat(processedData[key]);
@@ -219,7 +278,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
           Quick mode - Add essential info to get started. You can add detailed stats later.
         </div>
       </div>
-      
+
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="first_name">First Name</Label>
@@ -243,8 +302,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
 
       <div>
         <Label htmlFor="display_name">
-          Display Name * 
-          <span className="text-xs text-slate-500 ml-2">(auto-generated)</span>
+          Display Name *<span className="text-xs text-slate-500 ml-2">(auto-generated)</span>
         </Label>
         <Input
           id="display_name"
@@ -252,9 +310,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
           onChange={(e) => handleChange('display_name', e.target.value)}
           required
         />
-        {errors.display_name && (
-          <p className="text-sm text-red-600 mt-1">{errors.display_name}</p>
-        )}
+        {errors.display_name && <p className="text-sm text-red-600 mt-1">{errors.display_name}</p>}
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -292,12 +348,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
         />
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={() => setMode('full')}
-      >
+      <Button type="button" variant="outline" className="w-full" onClick={() => setMode('full')}>
         <User className="w-4 h-4 mr-2" />
         Switch to Full Profile Mode
       </Button>
@@ -468,12 +519,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
                   </div>
                 </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setMode('quick')}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setMode('quick')}>
                   Switch to Quick Mode
                 </Button>
               </TabsContent>
@@ -563,7 +609,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
                     Advanced metrics for detailed analysis. Leave blank to use defaults.
                   </AlertDescription>
                 </Alert>
-                
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <FieldWithHelper
                     id="clutch_factor"
@@ -677,8 +723,14 @@ export default function PlayerForm({ open, onClose, player = null }) {
                 <div className="p-3 bg-slate-50 rounded-lg">
                   <div className="text-sm font-medium text-slate-700 mb-2">Generated Fields</div>
                   <div className="space-y-1 text-xs text-slate-600">
-                    <div><span className="font-medium">Slug:</span> {formData.slug || '(auto-generated)'}</div>
-                    <div><span className="font-medium">Display Name:</span> {formData.display_name || '(required)'}</div>
+                    <div>
+                      <span className="font-medium">Slug:</span>{' '}
+                      {formData.slug || '(auto-generated)'}
+                    </div>
+                    <div>
+                      <span className="font-medium">Display Name:</span>{' '}
+                      {formData.display_name || '(required)'}
+                    </div>
                   </div>
                 </div>
               </TabsContent>
@@ -689,7 +741,8 @@ export default function PlayerForm({ open, onClose, player = null }) {
             <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Please fix {Object.keys(errors).length} validation error{Object.keys(errors).length > 1 ? 's' : ''} before submitting.
+                Please fix {Object.keys(errors).length} validation error
+                {Object.keys(errors).length > 1 ? 's' : ''} before submitting.
               </AlertDescription>
             </Alert>
           )}
@@ -698,12 +751,16 @@ export default function PlayerForm({ open, onClose, player = null }) {
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-emerald-600 hover:bg-emerald-700"
               disabled={createPlayerMutation.isPending}
             >
-              {createPlayerMutation.isPending ? "Saving..." : player ? "Update Player" : "Add Player"}
+              {createPlayerMutation.isPending
+                ? 'Saving...'
+                : player
+                ? 'Update Player'
+                : 'Add Player'}
             </Button>
           </DialogFooter>
         </form>
@@ -712,7 +769,7 @@ export default function PlayerForm({ open, onClose, player = null }) {
   );
 }
 
-function FieldWithHelper({ id, label, value, onChange, error, helper, type = "number" }) {
+function FieldWithHelper({ id, label, value, onChange, error, helper, type = 'number' }) {
   return (
     <div>
       <Label htmlFor={id}>{label}</Label>
@@ -723,12 +780,8 @@ function FieldWithHelper({ id, label, value, onChange, error, helper, type = "nu
         value={value}
         onChange={(e) => onChange(id, e.target.value)}
       />
-      {helper && (
-        <p className="text-xs text-slate-500 mt-1">{helper}</p>
-      )}
-      {error && (
-        <p className="text-sm text-red-600 mt-1">{error}</p>
-      )}
+      {helper && <p className="text-xs text-slate-500 mt-1">{helper}</p>}
+      {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
     </div>
   );
 }

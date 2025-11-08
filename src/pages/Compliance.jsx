@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Shield, ExternalLink, Plus, Edit, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
-import ComplianceForm from "../components/admin/ComplianceForm";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Shield, ExternalLink, Plus, Edit, AlertTriangle } from 'lucide-react';
+import { format } from 'date-fns';
+import ComplianceForm from '../components/admin/ComplianceForm';
 
 export default function Compliance() {
   const queryClient = useQueryClient();
@@ -52,7 +52,9 @@ export default function Compliance() {
     <div className="p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Source Compliance Dashboard</h1>
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">
+            Source Compliance Dashboard
+          </h1>
           <p className="text-slate-500 mt-2">Track data sources and licensing compliance</p>
         </div>
         <Button
@@ -79,7 +81,7 @@ export default function Compliance() {
           <CardContent className="p-4">
             <div className="text-sm text-slate-500">Compliant</div>
             <div className="text-2xl font-bold text-emerald-600 mt-1">
-              {sources.filter(s => s.compliance_status === 'compliant').length}
+              {sources.filter((s) => s.compliance_status === 'compliant').length}
             </div>
           </CardContent>
         </Card>
@@ -87,7 +89,7 @@ export default function Compliance() {
           <CardContent className="p-4">
             <div className="text-sm text-slate-500">Pending Review</div>
             <div className="text-2xl font-bold text-yellow-600 mt-1">
-              {sources.filter(s => s.compliance_status === 'pending_review').length}
+              {sources.filter((s) => s.compliance_status === 'pending_review').length}
             </div>
           </CardContent>
         </Card>
@@ -95,7 +97,7 @@ export default function Compliance() {
           <CardContent className="p-4">
             <div className="text-sm text-slate-500">Violations</div>
             <div className="text-2xl font-bold text-red-600 mt-1">
-              {sources.filter(s => s.compliance_status === 'violation').length}
+              {sources.filter((s) => s.compliance_status === 'violation').length}
             </div>
           </CardContent>
         </Card>
@@ -117,16 +119,29 @@ export default function Compliance() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-slate-700">Source</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Status</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Last Reviewed</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Reviewer</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Actions</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-slate-700">
+                      Source
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Status
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Last Reviewed
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Reviewer
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {sources.map((source) => (
-                    <tr key={source.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={source.id}
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    >
                       <td className="py-3 px-2">
                         <div className="font-medium text-slate-900">{source.data_source_name}</div>
                         {source.terms_url && (
@@ -145,7 +160,8 @@ export default function Compliance() {
                       </td>
                       <td className="py-3 px-2 text-center">
                         <Badge className={statusColors[source.compliance_status]}>
-                          {statusGlyphs[source.compliance_status]} {source.compliance_status.replace('_', ' ')}
+                          {statusGlyphs[source.compliance_status]}{' '}
+                          {source.compliance_status.replace('_', ' ')}
                         </Badge>
                       </td>
                       <td className="py-3 px-2 text-center text-sm text-slate-600">
@@ -157,11 +173,7 @@ export default function Compliance() {
                         {source.reviewer || '-'}
                       </td>
                       <td className="py-3 px-2 text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(source)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(source)}>
                           <Edit className="w-3 h-3 mr-1" />
                           Review
                         </Button>
@@ -194,7 +206,11 @@ export default function Compliance() {
               <h3 className="font-semibold text-blue-900 mb-2">Compliance Best Practices</h3>
               <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
                 <li>Always review terms of service before using data from external sources</li>
-                <li>Track data source in the <code className="bg-blue-100 px-1 rounded">data_source</code> field when adding players</li>
+                <li>
+                  Track data source in the{' '}
+                  <code className="bg-blue-100 px-1 rounded">data_source</code> field when adding
+                  players
+                </li>
                 <li>Review compliance status regularly (at least quarterly)</li>
                 <li>Mark sources as "violation" if terms change or access is revoked</li>
                 <li>Keep notes on licensing agreements and data usage restrictions</li>
@@ -208,9 +224,7 @@ export default function Compliance() {
       <Dialog open={showForm} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingSource ? 'Review Data Source' : 'Add Data Source'}
-            </DialogTitle>
+            <DialogTitle>{editingSource ? 'Review Data Source' : 'Add Data Source'}</DialogTitle>
           </DialogHeader>
           <ComplianceForm source={editingSource} onSuccess={handleClose} />
         </DialogContent>

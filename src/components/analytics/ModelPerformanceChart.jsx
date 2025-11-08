@@ -1,7 +1,16 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { Badge } from '@/components/ui/badge';
 
 export default function ModelPerformanceChart({ accuracyByModel, predictionCounts }) {
   const data = [
@@ -28,19 +37,15 @@ export default function ModelPerformanceChart({ accuracyByModel, predictionCount
   return (
     <Card className="shadow-md">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          📊 Model Performance Comparison
-        </CardTitle>
-        <p className="text-sm text-slate-500 mt-1">
-          Accuracy rates for each prediction model type
-        </p>
+        <CardTitle className="flex items-center gap-2">📊 Model Performance Comparison</CardTitle>
+        <p className="text-sm text-slate-500 mt-1">Accuracy rates for each prediction model type</p>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="model" stroke="#64748b" />
-            <YAxis 
+            <YAxis
               stroke="#64748b"
               label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }}
             />
@@ -49,7 +54,7 @@ export default function ModelPerformanceChart({ accuracyByModel, predictionCount
                 backgroundColor: 'white',
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
-                padding: '12px'
+                padding: '12px',
               }}
               formatter={(value) => [`${value.toFixed(1)}%`, 'Accuracy']}
             />
@@ -59,11 +64,11 @@ export default function ModelPerformanceChart({ accuracyByModel, predictionCount
 
         {/* Model comparison insights */}
         <div className="mt-6 grid md:grid-cols-3 gap-4">
-          {data.map(model => (
+          {data.map((model) => (
             <div key={model.model} className="bg-slate-50 rounded-lg p-4 border border-slate-200">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm text-slate-600">{model.model}</div>
-                <Badge 
+                <Badge
                   className="capitalize"
                   style={{ backgroundColor: model.color, color: 'white' }}
                 >
@@ -85,12 +90,15 @@ export default function ModelPerformanceChart({ accuracyByModel, predictionCount
           <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
             <div className="text-sm text-emerald-800">
               <span className="font-semibold">Top Performer:</span>{' '}
-              {data.reduce((best, current) => 
-                current.accuracy > best.accuracy ? current : best
-              ).model} model with{' '}
-              {data.reduce((best, current) => 
-                current.accuracy > best.accuracy ? current : best
-              ).accuracy.toFixed(1)}% accuracy
+              {
+                data.reduce((best, current) => (current.accuracy > best.accuracy ? current : best))
+                  .model
+              }{' '}
+              model with{' '}
+              {data
+                .reduce((best, current) => (current.accuracy > best.accuracy ? current : best))
+                .accuracy.toFixed(1)}
+              % accuracy
             </div>
           </div>
         )}

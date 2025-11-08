@@ -1,10 +1,10 @@
-import React from "react";
-import * as Sentry from "@sentry/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, RefreshCw, Home } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import React from 'react';
+import * as Sentry from '@sentry/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -17,7 +17,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
     if (Sentry?.captureException) {
       Sentry.captureException(error, {
         extra: { componentStack: errorInfo?.componentStack },
@@ -45,13 +45,11 @@ class ErrorBoundary extends React.Component {
                   <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                    Something went wrong
-                  </h1>
+                  <h1 className="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h1>
                   <p className="text-slate-600 mb-4">
                     We encountered an unexpected error. This has been logged and we'll look into it.
                   </p>
-                  
+
                   {this.state.error && (
                     <details className="mb-6">
                       <summary className="text-sm font-medium text-slate-700 cursor-pointer hover:text-slate-900 mb-2">
@@ -78,7 +76,7 @@ class ErrorBoundary extends React.Component {
                       <RefreshCw className="w-4 h-4 mr-2" />
                       Try Again
                     </Button>
-                    <Link to={createPageUrl("Dashboard")}>
+                    <Link to={createPageUrl('Dashboard')}>
                       <Button variant="outline">
                         <Home className="w-4 h-4 mr-2" />
                         Go to Dashboard

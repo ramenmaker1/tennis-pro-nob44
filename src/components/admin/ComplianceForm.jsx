@@ -1,12 +1,18 @@
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 export default function ComplianceForm({ source = null, onSuccess }) {
   const queryClient = useQueryClient();
@@ -19,8 +25,8 @@ export default function ComplianceForm({ source = null, onSuccess }) {
   });
 
   const mutation = useMutation({
-    mutationFn: (data) => 
-      source 
+    mutationFn: (data) =>
+      source
         ? base44.entities.SourceCompliance.update(source.id, {
             ...data,
             last_reviewed: new Date().toISOString(),
@@ -48,7 +54,7 @@ export default function ComplianceForm({ source = null, onSuccess }) {
         <Input
           id="data_source_name"
           value={formData.data_source_name}
-          onChange={(e) => setFormData(prev => ({ ...prev, data_source_name: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, data_source_name: e.target.value }))}
           placeholder="e.g., ATP Official, Tennis Abstract"
           required
         />
@@ -60,7 +66,7 @@ export default function ComplianceForm({ source = null, onSuccess }) {
           id="terms_url"
           type="url"
           value={formData.terms_url}
-          onChange={(e) => setFormData(prev => ({ ...prev, terms_url: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, terms_url: e.target.value }))}
           placeholder="https://..."
         />
       </div>
@@ -69,7 +75,7 @@ export default function ComplianceForm({ source = null, onSuccess }) {
         <Label htmlFor="compliance_status">Compliance Status</Label>
         <Select
           value={formData.compliance_status}
-          onValueChange={(value) => setFormData(prev => ({ ...prev, compliance_status: value }))}
+          onValueChange={(value) => setFormData((prev) => ({ ...prev, compliance_status: value }))}
         >
           <SelectTrigger>
             <SelectValue />
@@ -87,7 +93,7 @@ export default function ComplianceForm({ source = null, onSuccess }) {
         <Input
           id="reviewer"
           value={formData.reviewer}
-          onChange={(e) => setFormData(prev => ({ ...prev, reviewer: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, reviewer: e.target.value }))}
           placeholder="Your name"
         />
       </div>
@@ -97,14 +103,14 @@ export default function ComplianceForm({ source = null, onSuccess }) {
         <Textarea
           id="notes"
           value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
           placeholder="Compliance notes, licensing info, etc."
           rows={3}
         />
       </div>
 
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         className="bg-emerald-600 hover:bg-emerald-700"
         disabled={mutation.isPending}
       >

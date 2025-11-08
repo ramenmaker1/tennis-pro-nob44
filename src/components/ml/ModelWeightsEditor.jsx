@@ -1,27 +1,27 @@
-import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { Settings, Save, RotateCcw, Zap } from "lucide-react";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Settings, Save, RotateCcw, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ModelWeightsEditor({ currentWeights, onClose }) {
   const queryClient = useQueryClient();
   const [weights, setWeights] = useState(() => initializeWeights(currentWeights));
 
-  const totalWeight = 
-    weights.ranking_weight + 
-    weights.serve_weight + 
-    weights.return_weight + 
-    weights.surface_weight + 
-    weights.h2h_weight + 
-    weights.form_weight + 
-    weights.fatigue_weight + 
+  const totalWeight =
+    weights.ranking_weight +
+    weights.serve_weight +
+    weights.return_weight +
+    weights.surface_weight +
+    weights.h2h_weight +
+    weights.form_weight +
+    weights.fatigue_weight +
     weights.injury_weight;
 
   const isValidTotal = Math.abs(totalWeight - 1.0) < 0.01;
@@ -32,7 +32,7 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
       if (currentWeights.id) {
         await base44.entities.ModelWeights.update(currentWeights.id, { is_active: false });
       }
-      
+
       // Create new active weights
       return base44.entities.ModelWeights.create({
         ...newWeights,
@@ -55,7 +55,7 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
     mutationFn: async () => {
       const feedback = await base44.entities.ModelFeedback.list({ limit: 1000 });
       if (!feedback || feedback.length === 0) {
-        throw new Error("No feedback data available");
+        throw new Error('No feedback data available');
       }
 
       const optimizedWeights = optimizeWeights(feedback, weights);
@@ -84,7 +84,7 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
   });
 
   const handleWeightChange = (key, value) => {
-    setWeights(prev => ({ ...prev, [key]: value }));
+    setWeights((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
@@ -173,17 +173,21 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
           </div>
 
           {/* Total Weight Display */}
-          <div className={`p-4 rounded-lg border-2 ${isValidTotal ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}>
+          <div
+            className={`p-4 rounded-lg border-2 ${
+              isValidTotal ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'
+            }`}
+          >
             <div className="flex items-center justify-between">
               <span className="font-semibold">Total Weight:</span>
-              <span className={`text-2xl font-bold ${isValidTotal ? 'text-green-700' : 'text-red-700'}`}>
+              <span
+                className={`text-2xl font-bold ${isValidTotal ? 'text-green-700' : 'text-red-700'}`}
+              >
                 {totalWeight.toFixed(3)}
               </span>
             </div>
             {!isValidTotal && (
-              <p className="text-xs text-red-600 mt-1">
-                Weights must sum to exactly 1.0
-              </p>
+              <p className="text-xs text-red-600 mt-1">Weights must sum to exactly 1.0</p>
             )}
           </div>
 
@@ -256,11 +260,11 @@ function initializeWeights(existing = {}) {
   return {
     model_version: existing.model_version || 'v4.0',
     ranking_weight: existing.ranking_weight ?? 0.25,
-    serve_weight: existing.serve_weight ?? 0.20,
+    serve_weight: existing.serve_weight ?? 0.2,
     return_weight: existing.return_weight ?? 0.15,
     surface_weight: existing.surface_weight ?? 0.15,
-    h2h_weight: existing.h2h_weight ?? 0.10,
-    form_weight: existing.form_weight ?? 0.10,
+    h2h_weight: existing.h2h_weight ?? 0.1,
+    form_weight: existing.form_weight ?? 0.1,
     fatigue_weight: existing.fatigue_weight ?? 0.03,
     injury_weight: existing.injury_weight ?? 0.02,
     notes: existing.notes || '',

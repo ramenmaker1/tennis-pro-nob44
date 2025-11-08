@@ -1,18 +1,18 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
-import { Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { format } from 'date-fns';
+import { Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export default function RecentPredictionsTable({ predictions, matches, players }) {
   const getPredictionDetails = (prediction) => {
-    const match = matches.find(m => m.id === prediction.match_id);
-    const player1 = players.find(p => p.id === match?.player1_id);
-    const player2 = players.find(p => p.id === match?.player2_id);
-    const winner = players.find(p => p.id === prediction.predicted_winner_id);
+    const match = matches.find((m) => m.id === prediction.match_id);
+    const player1 = players.find((p) => p.id === match?.player1_id);
+    const player2 = players.find((p) => p.id === match?.player2_id);
+    const winner = players.find((p) => p.id === prediction.predicted_winner_id);
 
     return { match, player1, player2, winner };
   };
@@ -45,7 +45,7 @@ export default function RecentPredictionsTable({ predictions, matches, players }
             <CardTitle>Recent Predictions</CardTitle>
             <p className="text-sm text-slate-500 mt-1">Latest match analyses and their outcomes</p>
           </div>
-          <Link to={createPageUrl("Predictions")}>
+          <Link to={createPageUrl('Predictions')}>
             <Button variant="outline" size="sm">
               View All
             </Button>
@@ -58,20 +58,35 @@ export default function RecentPredictionsTable({ predictions, matches, players }
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-2 text-sm font-semibold text-slate-700">Match</th>
-                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Model</th>
-                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Confidence</th>
-                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Predicted</th>
-                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Status</th>
-                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">Date</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold text-slate-700">
+                    Match
+                  </th>
+                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                    Model
+                  </th>
+                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                    Confidence
+                  </th>
+                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                    Predicted
+                  </th>
+                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                    Status
+                  </th>
+                  <th className="text-center py-3 px-2 text-sm font-semibold text-slate-700">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {predictions.map((prediction) => {
                   const { match, player1, player2, winner } = getPredictionDetails(prediction);
-                  
+
                   return (
-                    <tr key={prediction.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={prediction.id}
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    >
                       <td className="py-3 px-2">
                         <div className="text-sm font-medium text-slate-900">
                           {player1?.display_name || player1?.name || 'Player 1'} vs{' '}
@@ -87,11 +102,15 @@ export default function RecentPredictionsTable({ predictions, matches, players }
                         </Badge>
                       </td>
                       <td className="py-3 px-2 text-center">
-                        <Badge className={
-                          prediction.confidence_level === 'high' ? 'bg-emerald-100 text-emerald-700' :
-                          prediction.confidence_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-slate-100 text-slate-700'
-                        }>
+                        <Badge
+                          className={
+                            prediction.confidence_level === 'high'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : prediction.confidence_level === 'medium'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-slate-100 text-slate-700'
+                          }
+                        >
                           {prediction.confidence_level}
                         </Badge>
                       </td>
@@ -103,17 +122,15 @@ export default function RecentPredictionsTable({ predictions, matches, players }
                           </span>
                         </div>
                         <div className="text-xs text-slate-500 mt-1">
-                          {prediction.player1_win_probability?.toFixed(1)}% / {prediction.player2_win_probability?.toFixed(1)}%
+                          {prediction.player1_win_probability?.toFixed(1)}% /{' '}
+                          {prediction.player2_win_probability?.toFixed(1)}%
                         </div>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        {getStatusBadge(prediction)}
-                      </td>
+                      <td className="py-3 px-2 text-center">{getStatusBadge(prediction)}</td>
                       <td className="py-3 px-2 text-center text-sm text-slate-600">
-                        {prediction.created_date 
+                        {prediction.created_date
                           ? format(new Date(prediction.created_date), 'MMM d, yyyy')
-                          : 'N/A'
-                        }
+                          : 'N/A'}
                       </td>
                     </tr>
                   );

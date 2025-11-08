@@ -13,23 +13,22 @@ const Compliance = lazy(() => import('./pages/Compliance'));
 const DataQuality = lazy(() => import('./pages/DataQuality'));
 const Help = lazy(() => import('./pages/Help'));
 
-
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "Players": Players,
-    "MatchAnalysis": MatchAnalysis,
-    "Predictions": Predictions,
-    "Analytics": Analytics,
-    "MatchHistory": MatchHistory,
-    "BulkImport": BulkImport,
-    "Compliance": Compliance,
-    "DataQuality": DataQuality,
-    "Help": Help,
-    "MLDashboard": MLDashboard,
-}
+  Dashboard: Dashboard,
+  Players: Players,
+  MatchAnalysis: MatchAnalysis,
+  Predictions: Predictions,
+  Analytics: Analytics,
+  MatchHistory: MatchHistory,
+  BulkImport: BulkImport,
+  Compliance: Compliance,
+  DataQuality: DataQuality,
+  Help: Help,
+  MLDashboard: MLDashboard,
+};
 
 export const pagesConfig = {
-    mainPage: "Dashboard",
-    Pages: PAGES,
-    Layout: Layout,
+  mainPage: 'Dashboard',
+  Pages: PAGES,
+  Layout: Layout,
 };
