@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import './App.css';
 import { Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,6 +7,16 @@ import { queryClientInstance } from '@/lib/query-client';
 import VisualEditAgent from '@/lib/VisualEditAgent';
 import NavigationTracker from '@/lib/NavigationTracker';
 import { pagesConfig } from './pages.config';
+=======
+import './App.css'
+import { Suspense } from 'react';
+import { Toaster } from "@/components/ui/toaster"
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClientInstance } from '@/lib/query-client'
+import VisualEditAgent from '@/lib/VisualEditAgent'
+import NavigationTracker from '@/lib/NavigationTracker'
+import { pagesConfig } from './pages.config'
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { setupIframeMessaging } from './lib/iframe-messaging';
 import PageNotFound from './lib/PageNotFound';
@@ -20,6 +31,15 @@ setupIframeMessaging();
 
 const LayoutWrapper = ({ children, currentPageName }) =>
   Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
+
+const SuspenseFallback = (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="flex flex-col items-center gap-3 text-slate-500">
+      <div className="w-10 h-10 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin" />
+      <p className="text-sm font-medium">Loading TennisPro...</p>
+    </div>
+  </div>
+);
 
 const SuspenseFallback = (
   <div className="flex items-center justify-center min-h-[50vh]">

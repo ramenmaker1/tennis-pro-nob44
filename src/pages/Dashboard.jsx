@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -20,6 +21,22 @@ import { formatMatchTime } from '../utils/timezone.js';
 import ModelPerformanceChart from '../components/analytics/ModelPerformanceChart';
 import RecentPredictionsTable from '../components/analytics/RecentPredictionsTable';
 import EmptyState from '../components/EmptyState.jsx';
+=======
+
+import React from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { TrendingUp, Users, BarChart3, Plus, Calendar, Trophy, Target, Activity } from "lucide-react";
+import { format } from "date-fns";
+import { formatMatchTime } from "../utils/timezone.js";
+import ModelPerformanceChart from "../components/analytics/ModelPerformanceChart";
+import RecentPredictionsTable from "../components/analytics/RecentPredictionsTable";
+import EmptyState from "../components/EmptyState.jsx";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 import {
   getAccuracyByModel,
   getPredictionCountsByModel,
@@ -86,8 +103,13 @@ export default function Dashboard() {
   const overallAccuracy = calculateOverallAccuracy(predictions);
   const confidenceCounts = getPredictionsByConfidence(predictions);
   const recentTrends = getRecentTrends(predictions);
+<<<<<<< HEAD
 
   const upcomingMatches = matches.filter((m) => m.status === 'scheduled').slice(0, 5);
+=======
+  
+  const upcomingMatches = matches.filter(m => m.status === 'scheduled').slice(0, 5);
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   const recentPredictions = predictions.slice(0, 10);
 
   const completedPredictions = predictions.filter((p) => p.actual_winner_id);
@@ -119,11 +141,19 @@ export default function Dashboard() {
           icon={<BarChart3 className="w-6 h-6 text-emerald-600" />}
           title="No predictions yet"
           description="Create your first match analysis to see predictions here."
+<<<<<<< HEAD
           action={
             <Link to={createPageUrl('MatchAnalysis')}>
               <Button>Create Match</Button>
             </Link>
           }
+=======
+          action={(
+            <Link to={createPageUrl("MatchAnalysis")}>
+              <Button>Create Match</Button>
+            </Link>
+          )}
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
         />
       )}
 

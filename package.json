@@ -50,7 +50,10 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@sentry/react": "^8.30.0",
+<<<<<<< HEAD
     "@supabase/supabase-js": "^2.80.0",
+=======
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     "@tanstack/react-query": "^5.84.1",
     "better-sqlite3": "^12.4.1",
     "canvas-confetti": "^1.9.4",

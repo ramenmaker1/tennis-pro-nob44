@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +18,21 @@ import ProbabilityChart from '../components/match/ProbabilityChart';
 import { exportPredictionsToJSON, exportPredictionsToCSV } from '../utils/exportData.js';
 import { toast } from 'sonner';
 import { PredictionFeedback } from '../components/ml/PredictionFeedback.jsx';
+=======
+import React, { useMemo, useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart3, Download, Filter } from "lucide-react";
+import { format } from "date-fns";
+import ProbabilityChart from "../components/match/ProbabilityChart";
+import { exportPredictionsToJSON, exportPredictionsToCSV } from "../utils/exportData.js";
+import { toast } from "sonner";
+import { PredictionFeedback } from "../components/ml/PredictionFeedback.jsx";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
 export default function Predictions() {
   const [selectedPrediction, setSelectedPrediction] = useState(null);
@@ -42,7 +58,11 @@ export default function Predictions() {
   });
 
   const filteredPredictions = useMemo(() => {
+<<<<<<< HEAD
     return predictions.filter((pred) => {
+=======
+    return predictions.filter(pred => {
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
       if (modelFilter !== 'all' && pred.model_type !== modelFilter) return false;
       if (confidenceFilter !== 'all' && pred.confidence_level !== confidenceFilter) return false;
       return true;
@@ -278,6 +298,7 @@ export default function Predictions() {
                           </div>
                         )}
 
+<<<<<<< HEAD
                         {prediction.point_by_point_data &&
                           prediction.point_by_point_data.length > 0 && (
                             <ProbabilityChart
@@ -286,6 +307,15 @@ export default function Predictions() {
                               player2Name={player2?.display_name || player2?.name}
                             />
                           )}
+=======
+                        {prediction.point_by_point_data && prediction.point_by_point_data.length > 0 && (
+                          <ProbabilityChart
+                            data={prediction.point_by_point_data}
+                            player1Name={player1?.display_name || player1?.name}
+                            player2Name={player2?.display_name || player2?.name}
+                          />
+                        )}
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
                         <PredictionFeedback
                           prediction={prediction}
@@ -330,3 +360,4 @@ export default function Predictions() {
     </div>
   );
 }
+

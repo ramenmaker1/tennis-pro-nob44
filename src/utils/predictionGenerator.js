@@ -4,25 +4,42 @@
  */
 export const generateAllPredictions = (match, player1, player2) => {
   if (!match || !player1 || !player2) {
+<<<<<<< HEAD
     throw new Error('Match and both players required for prediction generation');
+=======
+    throw new Error("Match and both players required for prediction generation");
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   }
 
   const base = calculateBaseProbabilities(player1, player2, match);
   const models = [
+<<<<<<< HEAD
     { type: 'conservative', variance: 0.05, favoriteBoost: 1.08 },
     { type: 'balanced', variance: 0.1, favoriteBoost: 1.0 },
     { type: 'aggressive', variance: 0.15, favoriteBoost: 0.95 },
+=======
+    { type: "conservative", variance: 0.05, favoriteBoost: 1.08 },
+    { type: "balanced", variance: 0.1, favoriteBoost: 1.0 },
+    { type: "aggressive", variance: 0.15, favoriteBoost: 0.95 },
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   ];
 
   return models.map((model) => {
     const { p1Prob, p2Prob } = applyModelVariance(base, model, player1, player2);
     const predictedWinnerId = p1Prob > p2Prob ? player1.id : player2.id;
     const maxProb = Math.max(p1Prob, p2Prob);
+<<<<<<< HEAD
     const confidence_level = maxProb < 0.55 ? 'low' : maxProb <= 0.7 ? 'medium' : 'high';
 
     // Simple sets estimate
     const predicted_sets =
       match.best_of === 5 ? (maxProb > 0.65 ? '3-0' : '3-1') : maxProb > 0.65 ? '2-0' : '2-1';
+=======
+    const confidence_level = maxProb < 0.55 ? "low" : maxProb <= 0.7 ? "medium" : "high";
+
+    // Simple sets estimate
+    const predicted_sets = match.best_of === 5 ? (maxProb > 0.65 ? "3-0" : "3-1") : (maxProb > 0.65 ? "2-0" : "2-1");
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
     const prob_straight_sets = Math.round((maxProb - 0.5) * 200);
     const prob_deciding_set = Math.max(0, 100 - prob_straight_sets);
@@ -61,6 +78,7 @@ const calculateBaseProbabilities = (p1, p2, match) => {
 
   // Serve/return deltas (stats are percentages 0-100 in this app)
   if (p1.first_serve_win_pct && p2.first_serve_win_pct) {
+<<<<<<< HEAD
     p1Prob += Math.max(
       -0.1,
       Math.min(0.1, ((p1.first_serve_win_pct - p2.first_serve_win_pct) / 100) * 0.3)
@@ -71,13 +89,23 @@ const calculateBaseProbabilities = (p1, p2, match) => {
       -0.1,
       Math.min(0.1, ((p1.first_return_win_pct - p2.first_return_win_pct) / 100) * 0.3)
     );
+=======
+    p1Prob += Math.max(-0.1, Math.min(0.1, (p1.first_serve_win_pct - p2.first_serve_win_pct) / 100 * 0.3));
+  }
+  if (p1.first_return_win_pct && p2.first_return_win_pct) {
+    p1Prob += Math.max(-0.1, Math.min(0.1, (p1.first_return_win_pct - p2.first_return_win_pct) / 100 * 0.3));
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   }
 
   // Surface-specific adjustment
   if (match.surface) {
     const key = `${match.surface}_court_win_pct`;
     if (p1[key] && p2[key]) {
+<<<<<<< HEAD
       p1Prob += Math.max(-0.1, Math.min(0.1, ((p1[key] - p2[key]) / 100) * 0.2));
+=======
+      p1Prob += Math.max(-0.1, Math.min(0.1, (p1[key] - p2[key]) / 100 * 0.2));
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     }
   }
 
@@ -114,3 +142,7 @@ const generatePointByPointData = (p1Base, _p2Base, bestOf) => {
   }
   return data;
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde

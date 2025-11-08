@@ -9,7 +9,13 @@ export const calculateOverallAccuracy = (predictions) => {
   if (!Array.isArray(predictions) || predictions.length === 0) return 0;
   const completed = predictions.filter((p) => p.actual_winner_id);
   if (completed.length === 0) return 0;
+<<<<<<< HEAD
   const correct = completed.filter((p) => p.predicted_winner_id === p.actual_winner_id).length;
+=======
+  const correct = completed.filter(
+    (p) => p.predicted_winner_id === p.actual_winner_id
+  ).length;
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   return (correct / completed.length) * 100;
 };
 
@@ -106,7 +112,13 @@ export const getRecentTrends = (predictions) => {
   });
 
   const completed = recent.filter((p) => p.actual_winner_id);
+<<<<<<< HEAD
   const correct = completed.filter((p) => p.predicted_winner_id === p.actual_winner_id).length;
+=======
+  const correct = completed.filter(
+    (p) => p.predicted_winner_id === p.actual_winner_id
+  ).length;
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
   return {
     total: recent.length,
@@ -114,3 +126,7 @@ export const getRecentTrends = (predictions) => {
     accuracy: completed.length > 0 ? (correct / completed.length) * 100 : 0,
   };
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde

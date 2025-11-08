@@ -15,12 +15,21 @@ import {
 import { Loader2, TrendingUp, AlertCircle, Brain } from 'lucide-react'; // Added Brain
 import { Alert, AlertDescription } from '@/components/ui/alert';
 // import ProbabilityChart from "../components/match/ProbabilityChart"; // Removed as predictions are navigated away
+<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { generateAllPredictions } from '../utils/predictionGenerator.js';
 import { generateMLPrediction } from '../utils/mlPrediction.js'; // Added ML Prediction
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
+=======
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { generateAllPredictions } from "../utils/predictionGenerator.js";
+import { generateMLPrediction } from "../utils/mlPrediction.js"; // Added ML Prediction
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
 export default function MatchAnalysis() {
   const navigate = useNavigate();
@@ -78,6 +87,7 @@ export default function MatchAnalysis() {
     onSuccess: ({ match, predictions }) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       queryClient.invalidateQueries({ queryKey: ['predictions'] });
+<<<<<<< HEAD
       toast({
         title: 'Success',
         description: mlEnhanced
@@ -92,6 +102,13 @@ export default function MatchAnalysis() {
         description: 'Failed to generate predictions. Please try again.',
         variant: 'destructive',
       });
+=======
+      toast({ title: 'Success', description: mlEnhanced ? 'ML-enhanced prediction generated!' : `Generated ${predictions.length} predictions successfully!` });
+      navigate(createPageUrl("Predictions"));
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: 'Failed to generate predictions. Please try again.', variant: 'destructive' });
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
       console.error(error);
       setError('Failed to generate predictions. Please check your inputs and try again.');
     },

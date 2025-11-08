@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useCallback, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +17,20 @@ import PlayerStatsModal from '../components/players/PlayerStatsModal';
 import PlayerForm from '../components/players/PlayerForm';
 import { generateSamplePlayers } from '../utils/sampleData.js';
 import { toast } from 'sonner';
+=======
+import React, { useCallback, useMemo, useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, Download, Sparkles } from "lucide-react";
+import PlayerCard from "../components/players/PlayerCard";
+import PlayerStatsModal from "../components/players/PlayerStatsModal";
+import PlayerForm from "../components/players/PlayerForm";
+import { generateSamplePlayers } from "../utils/sampleData.js";
+import { toast } from "sonner";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
 export default function Players() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,6 +65,7 @@ export default function Players() {
 
   const filteredPlayers = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
+<<<<<<< HEAD
     return players.filter((player) => {
       const searchMatch =
         (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
@@ -79,6 +95,35 @@ export default function Players() {
     },
     [queryClient],
   );
+=======
+    return players.filter(player => {
+      const searchMatch = (
+        (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
+        (player.first_name || '').toLowerCase().includes(searchLower) ||
+        (player.last_name || '').toLowerCase().includes(searchLower) ||
+        (player.nationality || player.country || '').toLowerCase().includes(searchLower)
+      );
+  
+      if (!searchMatch) return false;
+  
+      if (surfaceFilter !== 'all') {
+        const surfaceKey = `${surfaceFilter}_court_win_pct`;
+        if (!player[surfaceKey]) return false;
+      }
+  
+      return true;
+    });
+  }, [players, searchQuery, surfaceFilter]);
+
+  const prefetchPlayer = useCallback((playerId) => {
+    if (!playerId) return;
+    queryClient.prefetchQuery({
+      queryKey: ['player', playerId],
+      queryFn: () => base44.entities.Player.get(playerId),
+      staleTime: 1000 * 60 * 5,
+    });
+  }, [queryClient]);
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
   const handleEdit = (player) => {
     setEditingPlayer(player);

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -24,6 +25,17 @@ export default function Analytics() {
     isLoading,
     isError,
   } = useQuery({
+=======
+import React from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ComposedChart, Area } from "recharts";
+
+export default function Analytics() {
+  const { data: predictions = [], isLoading, isError } = useQuery({
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     queryKey: ['predictions', 'analytics'],
     queryFn: async () => {
       return base44.entities.Prediction.list({ limit: 1000 });
@@ -38,8 +50,12 @@ export default function Analytics() {
       <div>
         <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Advanced Analytics</h1>
         <p className="text-slate-500 mt-2">
+<<<<<<< HEAD
           Calibration insights, model comparisons, and upset detection across {predictions.length}{' '}
           predictions.
+=======
+          Calibration insights, model comparisons, and upset detection across {predictions.length} predictions.
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
         </p>
       </div>
 
@@ -103,11 +119,15 @@ export default function Analytics() {
 
 function CalibrationCurve({ data }) {
   if (!data.length) {
+<<<<<<< HEAD
     return (
       <div className="h-64 flex items-center justify-center text-slate-500">
         No completed predictions yet
       </div>
     );
+=======
+    return <div className="h-64 flex items-center justify-center text-slate-500">No completed predictions yet</div>;
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   }
 
   return (
@@ -118,6 +138,7 @@ function CalibrationCurve({ data }) {
         <YAxis domain={[40, 100]} tickFormatter={(v) => `${v}%`} />
         <Tooltip formatter={(value) => `${value.toFixed(1)}%`} />
         <Legend />
+<<<<<<< HEAD
         <Line
           type="monotone"
           dataKey="predicted"
@@ -133,6 +154,11 @@ function CalibrationCurve({ data }) {
           strokeDasharray="4 4"
           name="Perfect Calibration"
         />
+=======
+        <Line type="monotone" dataKey="predicted" stroke="#0ea5e9" strokeWidth={3} name="Predicted %" />
+        <Line type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={3} name="Actual %" />
+        <Line type="monotone" dataKey="ideal" stroke="#94a3b8" strokeDasharray="4 4" name="Perfect Calibration" />
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
       </LineChart>
     </ResponsiveContainer>
   );
@@ -182,11 +208,15 @@ function ModelComparisonMatrix({ models, matrix }) {
 
 function FeatureImportanceViz({ data }) {
   if (!data.length) {
+<<<<<<< HEAD
     return (
       <p className="text-sm text-slate-500">
         Key factors will appear once predictions include feedback.
       </p>
     );
+=======
+    return <p className="text-sm text-slate-500">Key factors will appear once predictions include feedback.</p>;
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   }
 
   return (
@@ -194,6 +224,7 @@ function FeatureImportanceViz({ data }) {
       <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="factor" />
+<<<<<<< HEAD
         <YAxis
           yAxisId="left"
           orientation="left"
@@ -205,6 +236,10 @@ function FeatureImportanceViz({ data }) {
           domain={[0, 100]}
           tickFormatter={(v) => `${v}%`}
         />
+=======
+        <YAxis yAxisId="left" orientation="left" domain={[0, Math.max(...data.map((d) => d.appearances)) + 2]} />
+        <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
         <Tooltip />
         <Legend />
         <Bar yAxisId="left" dataKey="appearances" fill="#6366f1" name="Mentions" />
@@ -273,7 +308,11 @@ function buildCalibrationData(predictions = []) {
         bucket: `${key}-${Number(key) + 10}%`,
         predicted: bucket.predicted / bucket.count,
         actual: bucket.actual / bucket.count,
+<<<<<<< HEAD
         ideal: Number(key) + 5,
+=======
+        ideal: (Number(key) + 5),
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
       };
     });
 }
@@ -355,9 +394,13 @@ function buildFactorData(predictions = []) {
     .map(([factor, stats]) => ({
       factor,
       appearances: stats.appearances,
+<<<<<<< HEAD
       accuracy: stats.appearances
         ? Number(((stats.correct / stats.appearances) * 100).toFixed(1))
         : 0,
+=======
+      accuracy: stats.appearances ? Number(((stats.correct / stats.appearances) * 100).toFixed(1)) : 0,
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     }))
     .sort((a, b) => b.appearances - a.appearances)
     .slice(0, 10);
@@ -389,7 +432,11 @@ function buildUpsetData(predictions = []) {
 }
 
 function getHeatmapColor(value) {
+<<<<<<< HEAD
   if (value == null) return 'transparent';
+=======
+  if (value == null) return "transparent";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   const ratio = Math.max(0, Math.min(1, value / 100));
   const alpha = 0.15 + ratio * 0.4;
   return `rgba(16, 185, 129, ${alpha.toFixed(2)})`;

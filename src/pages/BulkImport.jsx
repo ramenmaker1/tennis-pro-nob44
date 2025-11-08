@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,6 +12,22 @@ import ImportPreview from '../components/admin/ImportPreview';
 import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from '../utils/csvParser.js';
 import { generatePlayerAliases, createPlayerSlug } from '../utils/aliasGenerator.js';
 import { toast } from 'sonner';
+=======
+
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Upload, Download, AlertCircle, CheckCircle, FileText } from "lucide-react";
+import ImportPreview from "../components/admin/ImportPreview";
+import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from "../utils/csvParser.js";
+import { generatePlayerAliases, createPlayerSlug } from "../utils/aliasGenerator.js";
+import { toast } from "sonner";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
 export default function BulkImport() {
   const queryClient = useQueryClient();
@@ -67,9 +84,13 @@ export default function BulkImport() {
 
     // Preload existing players once and create slug set
     const existing = await base44.entities.Player.list();
+<<<<<<< HEAD
     const existingSlugs = new Set(
       existing.map((p) => p.slug || createPlayerSlug(p.display_name || p.name || p.full_name))
     );
+=======
+    const existingSlugs = new Set(existing.map(p => p.slug || createPlayerSlug(p.display_name || p.name || p.full_name)));
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
     for (let i = 0; i < preview.length; i++) {
       const row = preview[i];
@@ -96,6 +117,7 @@ export default function BulkImport() {
 
         // Generate and create aliases in parallel, ignore failures
         const aliases = generatePlayerAliases(player);
+<<<<<<< HEAD
         const aliasPromises = aliases.map((alias) =>
           base44.entities.Alias.create({
             player_id: player.id,
@@ -105,6 +127,15 @@ export default function BulkImport() {
             console.warn('Alias creation failed:', aliasError?.message || aliasError);
           })
         );
+=======
+        const aliasPromises = aliases.map((alias) => base44.entities.Alias.create({
+          player_id: player.id,
+          ...alias,
+          is_auto_generated: true,
+        }).catch((aliasError) => {
+          console.warn('Alias creation failed:', aliasError?.message || aliasError);
+        }));
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
         await Promise.allSettled(aliasPromises);
 
         success++;

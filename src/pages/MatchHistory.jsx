@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +23,26 @@ export default function MatchHistory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSurface, setSelectedSurface] = useState('all');
   const [selectedPlayer, setSelectedPlayer] = useState('all');
+=======
+import React, { useMemo, useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, CalendarClock, Filter } from "lucide-react";
+import { formatMatchTime } from "../utils/timezone.js";
+import EmptyState from "../components/EmptyState.jsx";
+
+export default function MatchHistory() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSurface, setSelectedSurface] = useState("all");
+  const [selectedPlayer, setSelectedPlayer] = useState("all");
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   const [activeMatch, setActiveMatch] = useState(null);
 
   const { data: players = [] } = useQuery({
@@ -47,7 +68,14 @@ export default function MatchHistory() {
       filters.tournament_name = { $contains: searchTerm.trim() };
     }
     if (selectedPlayer !== 'all') {
+<<<<<<< HEAD
       filters.$or = [{ player1_id: selectedPlayer }, { player2_id: selectedPlayer }];
+=======
+      filters.$or = [
+        { player1_id: selectedPlayer },
+        { player2_id: selectedPlayer },
+      ];
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     }
     return filters;
   }, [selectedSurface, searchTerm, selectedPlayer]);
@@ -93,6 +121,7 @@ export default function MatchHistory() {
           <CardHeader className="pb-2 flex flex-col gap-1">
             <p className="text-xs uppercase tracking-wide text-slate-500">{matchTime}</p>
             <CardTitle className="text-lg">
+<<<<<<< HEAD
               {player1?.display_name || player1?.name || 'Player 1'} vs{' '}
               {player2?.display_name || player2?.name || 'Player 2'}
             </CardTitle>
@@ -101,6 +130,13 @@ export default function MatchHistory() {
               <Badge variant="outline" className="capitalize">
                 {match.surface || 'surface'}
               </Badge>
+=======
+              {(player1?.display_name || player1?.name || 'Player 1')} vs {player2?.display_name || player2?.name || 'Player 2'}
+            </CardTitle>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <span>{match.tournament_name || 'Tournament'}</span>
+              <Badge variant="outline" className="capitalize">{match.surface || 'surface'}</Badge>
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
             </div>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center justify-between gap-3">
@@ -111,12 +147,16 @@ export default function MatchHistory() {
               <Button variant="outline" size="sm" onClick={() => setActiveMatch(match)}>
                 View Predictions
               </Button>
+<<<<<<< HEAD
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-emerald-600"
                 onClick={() => refetch()}
               >
+=======
+              <Button variant="ghost" size="sm" className="text-emerald-600" onClick={() => refetch()}>
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
                 Refresh
               </Button>
             </div>
@@ -160,9 +200,13 @@ export default function MatchHistory() {
             <SelectContent>
               {surfaces.map((surface) => (
                 <SelectItem key={surface} value={surface}>
+<<<<<<< HEAD
                   {surface === 'all'
                     ? 'All Surfaces'
                     : surface.charAt(0).toUpperCase() + surface.slice(1)}
+=======
+                  {surface === 'all' ? 'All Surfaces' : surface.charAt(0).toUpperCase() + surface.slice(1)}
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
                 </SelectItem>
               ))}
             </SelectContent>
@@ -181,6 +225,7 @@ export default function MatchHistory() {
             </SelectContent>
           </Select>
           <div className="flex gap-2">
+<<<<<<< HEAD
             <Button
               variant="outline"
               onClick={() => {
@@ -189,6 +234,13 @@ export default function MatchHistory() {
                 setSelectedPlayer('all');
               }}
             >
+=======
+            <Button variant="outline" onClick={() => {
+              setSearchTerm("");
+              setSelectedSurface("all");
+              setSelectedPlayer("all");
+            }}>
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
               Reset
             </Button>
             <Button onClick={() => refetch()} disabled={isFetching}>
@@ -201,10 +253,14 @@ export default function MatchHistory() {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
+<<<<<<< HEAD
             <div
               key={i}
               className="h-32 bg-white rounded-xl border border-slate-200 animate-pulse"
             />
+=======
+            <div key={i} className="h-32 bg-white rounded-xl border border-slate-200 animate-pulse" />
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
           ))}
         </div>
       ) : error ? (
@@ -219,6 +275,7 @@ export default function MatchHistory() {
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle>Recent Completed Matches</CardTitle>
+<<<<<<< HEAD
             <p className="text-sm text-slate-500 mt-1">
               Showing up to 100 matches. Narrow filters to focus your review.
             </p>
@@ -226,6 +283,15 @@ export default function MatchHistory() {
           <CardContent>
             <ScrollArea className="max-h-[600px] pr-4">
               <div className="space-y-4">{historicalMatches.map(renderMatchCard)}</div>
+=======
+            <p className="text-sm text-slate-500 mt-1">Showing up to 100 matches. Narrow filters to focus your review.</p>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="max-h-[600px] pr-4">
+              <div className="space-y-4">
+                {historicalMatches.map(renderMatchCard)}
+              </div>
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
             </ScrollArea>
           </CardContent>
         </Card>
@@ -250,6 +316,7 @@ export default function MatchHistory() {
                         </div>
                         <div className="text-center">
                           <div className="text-sm text-slate-500">Predicted Winner</div>
+<<<<<<< HEAD
                           <div className="font-semibold">
                             {winner?.display_name || winner?.name || 'Pending'}
                           </div>
@@ -272,6 +339,23 @@ export default function MatchHistory() {
                             : prediction.was_correct
                             ? 'Correct'
                             : 'Incorrect'}
+=======
+                          <div className="font-semibold">{winner?.display_name || winner?.name || 'Pending'}</div>
+                          <div className="text-xs text-slate-500">
+                            {prediction.player1_win_probability?.toFixed(1)}% / {prediction.player2_win_probability?.toFixed(1)}%
+                          </div>
+                        </div>
+                        <Badge className={
+                          prediction.was_correct === true ? 'bg-emerald-100 text-emerald-700' :
+                          prediction.was_correct === false ? 'bg-red-100 text-red-700' :
+                          'bg-slate-100 text-slate-600'
+                        }>
+                          {prediction.was_correct === null || prediction.was_correct === undefined
+                            ? 'Pending'
+                            : prediction.was_correct
+                              ? 'Correct'
+                              : 'Incorrect'}
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
                         </Badge>
                       </CardContent>
                     </Card>

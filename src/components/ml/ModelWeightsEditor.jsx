@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +10,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Settings, Save, RotateCcw, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+=======
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
+import { Settings, Save, RotateCcw, Zap } from "lucide-react";
+import { toast } from "sonner";
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
 export default function ModelWeightsEditor({ currentWeights, onClose }) {
   const queryClient = useQueryClient();
@@ -55,7 +69,11 @@ export default function ModelWeightsEditor({ currentWeights, onClose }) {
     mutationFn: async () => {
       const feedback = await base44.entities.ModelFeedback.list({ limit: 1000 });
       if (!feedback || feedback.length === 0) {
+<<<<<<< HEAD
         throw new Error('No feedback data available');
+=======
+        throw new Error("No feedback data available");
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
       }
 
       const optimizedWeights = optimizeWeights(feedback, weights);
@@ -260,11 +278,19 @@ function initializeWeights(existing = {}) {
   return {
     model_version: existing.model_version || 'v4.0',
     ranking_weight: existing.ranking_weight ?? 0.25,
+<<<<<<< HEAD
     serve_weight: existing.serve_weight ?? 0.2,
     return_weight: existing.return_weight ?? 0.15,
     surface_weight: existing.surface_weight ?? 0.15,
     h2h_weight: existing.h2h_weight ?? 0.1,
     form_weight: existing.form_weight ?? 0.1,
+=======
+    serve_weight: existing.serve_weight ?? 0.20,
+    return_weight: existing.return_weight ?? 0.15,
+    surface_weight: existing.surface_weight ?? 0.15,
+    h2h_weight: existing.h2h_weight ?? 0.10,
+    form_weight: existing.form_weight ?? 0.10,
+>>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     fatigue_weight: existing.fatigue_weight ?? 0.03,
     injury_weight: existing.injury_weight ?? 0.02,
     notes: existing.notes || '',
