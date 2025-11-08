@@ -1,0 +1,17 @@
+{
+  "name": "TennisPro Predictor",
+  "short_name": "TennisPro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050810",
+  "theme_color": "#0f172a",
+  "description": "Tennis insights and predictions with Supabase sync and offline-ready workflows.",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

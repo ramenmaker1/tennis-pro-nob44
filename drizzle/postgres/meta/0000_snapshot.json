@@ -1,5 +1,5 @@
 {
-  "id": "4b12e6c2-0c3a-40f8-a3e7-47728f8d4b2a",
+  "id": "96416817-39d3-44bd-b4a7-d5d9144c53fc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -64,6 +64,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'scheduled'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -118,6 +125,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "slug": {
           "name": "slug",
           "type": "text",
@@ -126,6 +151,12 @@
         },
         "rank": {
           "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "peak_rank": {
+          "name": "peak_rank",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
@@ -154,15 +185,147 @@
           "primaryKey": false,
           "notNull": false
         },
+        "plays": {
+          "name": "plays",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "hand": {
           "name": "hand",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "age": {
-          "name": "age",
+        "photo_url": {
+          "name": "photo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "birth_year": {
+          "name": "birth_year",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height_cm": {
+          "name": "height_cm",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_serve_pct": {
+          "name": "first_serve_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_serve_win_pct": {
+          "name": "first_serve_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "second_serve_win_pct": {
+          "name": "second_serve_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aces_per_match": {
+          "name": "aces_per_match",
+          "type": "numeric(6, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "double_faults_per_match": {
+          "name": "double_faults_per_match",
+          "type": "numeric(6, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_return_win_pct": {
+          "name": "first_return_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "second_return_win_pct": {
+          "name": "second_return_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "break_points_converted_pct": {
+          "name": "break_points_converted_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "return_games_won_pct": {
+          "name": "return_games_won_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clutch_factor": {
+          "name": "clutch_factor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "consistency_rating": {
+          "name": "consistency_rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tiebreak_win_pct": {
+          "name": "tiebreak_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deuce_win_pct": {
+          "name": "deuce_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hard_court_win_pct": {
+          "name": "hard_court_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clay_court_win_pct": {
+          "name": "clay_court_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "grass_court_win_pct": {
+          "name": "grass_court_win_pct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fitness_rating": {
+          "name": "fitness_rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "momentum_rating": {
+          "name": "momentum_rating",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_source": {
+          "name": "data_source",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -174,6 +337,13 @@
         },
         "updated_at": {
           "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -219,6 +389,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "model_type": {
+          "name": "model_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "win_prob_a": {
           "name": "win_prob_a",
           "type": "numeric(6, 5)",
@@ -230,6 +406,12 @@
           "type": "numeric(6, 5)",
           "primaryKey": false,
           "notNull": true
+        },
+        "confidence_level": {
+          "name": "confidence_level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "deuce_tendency": {
           "name": "deuce_tendency",
@@ -243,8 +425,44 @@
           "primaryKey": false,
           "notNull": false
         },
+        "predicted_winner_id": {
+          "name": "predicted_winner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actual_winner_id": {
+          "name": "actual_winner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "was_correct": {
+          "name": "was_correct",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "notes": {
           "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "point_by_point_data": {
+          "name": "point_by_point_data",
           "type": "text",
           "primaryKey": false,
           "notNull": false

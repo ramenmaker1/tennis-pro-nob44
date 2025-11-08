@@ -28,6 +28,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import ErrorBoundary from './components/ErrorBoundary';
+import { DataSourceSelector } from '@/components/DataSourceSelector';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard', group: 'navigation' },
@@ -132,11 +133,18 @@ export default function Layout({ children }) {
 
           <main className="flex-1 flex flex-col">
             <header className="bg-white border-b border-slate-200 px-6 py-4 lg:hidden">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors" />
-                <h1 className="text-xl font-bold text-slate-900">TennisPro</h1>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4">
+                  <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors" />
+                  <h1 className="text-xl font-bold text-slate-900">TennisPro</h1>
+                </div>
+                <DataSourceSelector />
               </div>
             </header>
+
+            <div className="hidden border-b border-slate-200 bg-white px-6 py-4 lg:flex lg:justify-end">
+              <DataSourceSelector />
+            </div>
 
             <div className="flex-1 overflow-auto">{children}</div>
           </main>
