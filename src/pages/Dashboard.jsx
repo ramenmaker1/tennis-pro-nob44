@@ -20,14 +20,6 @@ import { formatMatchTime } from '../utils/timezone.js';
 import ModelPerformanceChart from '../components/analytics/ModelPerformanceChart';
 import RecentPredictionsTable from '../components/analytics/RecentPredictionsTable';
 import EmptyState from '../components/EmptyState.jsx';
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { TrendingUp, Users, BarChart3, Plus, Calendar, Trophy, Target, Activity } from "lucide-react";
-import { format } from "date-fns";
-import { formatMatchTime } from "../utils/timezone.js";
-import ModelPerformanceChart from "../components/analytics/ModelPerformanceChart";
-import RecentPredictionsTable from "../components/analytics/RecentPredictionsTable";
-import EmptyState from "../components/EmptyState.jsx";
 
 import {
   getAccuracyByModel,
