@@ -1,5 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentClient } from '@/data/dataSourceStore';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,19 +32,19 @@ import {
 export default function Dashboard() {
   const { data: players, isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryFn: () => getCurrentClient().players.list(),
     initialData: [],
   });
 
   const { data: matches, isLoading: matchesLoading } = useQuery({
     queryKey: ['matches'],
-    queryFn: () => base44.entities.Match.list('-created_date'),
+    queryFn: () => getCurrentClient().matches.list('-created_date'),
     initialData: [],
   });
 
   const { data: predictions, isLoading: predictionsLoading } = useQuery({
     queryKey: ['predictions'],
-    queryFn: () => base44.entities.Prediction.list('-created_date'),
+    queryFn: () => getCurrentClient().predictions.list('-created_date'),
     initialData: [],
   });
 

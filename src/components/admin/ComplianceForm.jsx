@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentClient } from '@/data/dataSourceStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,11 +27,11 @@ export default function ComplianceForm({ source = null, onSuccess }) {
   const mutation = useMutation({
     mutationFn: (data) =>
       source
-        ? base44.entities.SourceCompliance.update(source.id, {
+        ? getCurrentClient().compliance.update(source.id, {
             ...data,
             last_reviewed: new Date().toISOString(),
           })
-        : base44.entities.SourceCompliance.create({
+        : getCurrentClient().compliance.create({
             ...data,
             last_reviewed: new Date().toISOString(),
           }),

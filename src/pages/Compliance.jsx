@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentClient } from '@/data/dataSourceStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ export default function Compliance() {
 
   const { data: sources, isLoading } = useQuery({
     queryKey: ['compliance'],
-    queryFn: () => base44.entities.SourceCompliance.list('-last_reviewed'),
+    queryFn: () => getCurrentClient().compliance.list('-last_reviewed'),
     initialData: [],
   });
 
@@ -160,7 +160,7 @@ export default function Compliance() {
                       </td>
                       <td className="py-3 px-2 text-center">
                         <Badge className={statusColors[source.compliance_status]}>
-{statusGlyphs[source.compliance_status]}{' '}
+                          {statusGlyphs[source.compliance_status]}{' '}
                           {source.compliance_status.replace('_', ' ')}
                         </Badge>
                       </td>

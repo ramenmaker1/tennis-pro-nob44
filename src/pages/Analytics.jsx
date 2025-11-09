@@ -1,5 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentClient } from '@/data/dataSourceStore';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -26,7 +26,7 @@ export default function Analytics() {
   } = useQuery({
     queryKey: ['predictions', 'analytics'],
     queryFn: async () => {
-      return base44.entities.Prediction.list({ limit: 1000 });
+      return getCurrentClient().predictions.list({ limit: 1000 });
     },
     initialData: [],
   });

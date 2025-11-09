@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentClient } from '@/data/dataSourceStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +66,7 @@ export default function BulkImport() {
     const errorDetails = [];
 
     // Preload existing players once and create slug set
-    const existing = await base44.entities.Player.list();
+    const existing = await getCurrentClient().players.list();
     const existingSlugs = new Set(
       existing.map((p) => p.slug || createPlayerSlug(p.display_name || p.name || p.full_name)),
     );
@@ -91,19 +91,24 @@ export default function BulkImport() {
         }
 
         // Create player
-        const player = await base44.entities.Player.create({ ...validatedData, slug: playerSlug });
+        const player = await getCurrentClient().players.create({
+          ...validatedData,
+          slug: playerSlug,
+        });
         existingSlugs.add(playerSlug);
 
         // Generate and create aliases in parallel, ignore failures
         const aliases = generatePlayerAliases(player);
         const aliasPromises = aliases.map((alias) =>
-          base44.entities.Alias.create({
-            player_id: player.id,
-            ...alias,
-            is_auto_generated: true,
-          }).catch((aliasError) => {
-            console.warn('Alias creation failed:', aliasError?.message || aliasError);
-          }),
+          getCurrentClient()
+            .alias.create({
+              player_id: player.id,
+              ...alias,
+              is_auto_generated: true,
+            })
+            .catch((aliasError) => {
+              console.warn('Alias creation failed:', aliasError?.message || aliasError);
+            }),
         );
         await Promise.allSettled(aliasPromises);
 

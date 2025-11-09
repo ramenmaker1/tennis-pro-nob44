@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { getCurrentClient } from '@/data/dataSourceStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -28,13 +28,13 @@ export function PredictionFeedback({ prediction, match = {}, player1, player2 })
 
       const isCorrect = prediction.predicted_winner_id === actualWinner;
 
-      await base44.entities.Prediction.update(prediction.id, {
+      await getCurrentClient().predictions.update(prediction.id, {
         actual_winner_id: actualWinner,
         was_correct: isCorrect,
         completed_at: new Date().toISOString(),
       });
 
-      await base44.entities.ModelFeedback.create({
+      await getCurrentClient().modelFeedback.create({
         prediction_id: prediction.id,
         match_id: match?.id || prediction.match_id,
         model_type: prediction.model_type,
