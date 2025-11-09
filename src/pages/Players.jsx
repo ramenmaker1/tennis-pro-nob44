@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 import React, { useCallback, useMemo, useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,20 +15,7 @@ import PlayerStatsModal from '../components/players/PlayerStatsModal';
 import PlayerForm from '../components/players/PlayerForm';
 import { generateSamplePlayers } from '../utils/sampleData.js';
 import { toast } from 'sonner';
-=======
-import React, { useCallback, useMemo, useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Download, Sparkles } from "lucide-react";
-import PlayerCard from "../components/players/PlayerCard";
-import PlayerStatsModal from "../components/players/PlayerStatsModal";
-import PlayerForm from "../components/players/PlayerForm";
-import { generateSamplePlayers } from "../utils/sampleData.js";
-import { toast } from "sonner";
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
+import { getCurrentClient } from '@/data/dataSourceStore';
 
 export default function Players() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,255 +28,148 @@ export default function Players() {
 
   const { data: players, isLoading } = useQuery({
     queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list('-created_date'),
+    queryFn: () => getCurrentClient().players.list('-created_date'),
     initialData: [],
   });
 
   const handleGenerateSampleData = async () => {
+    if (generating) return;
     setGenerating(true);
+
     try {
-      const created = await generateSamplePlayers((payload) =>
-        base44.entities.Player.create(payload),
+      const samplePlayers = generateSamplePlayers(5);
+      await Promise.all(
+        samplePlayers.map((player) => getCurrentClient().players.create(player))
       );
-      toast.success(`Generated ${created.length} sample players!`);
-      queryClient.invalidateQueries({ queryKey: ['players'] });
+      queryClient.invalidateQueries(['players']);
+      toast.success('Generated sample player data');
     } catch (error) {
       toast.error('Failed to generate sample data');
-      console.error(error);
     } finally {
       setGenerating(false);
     }
   };
 
-  const filteredPlayers = useMemo(() => {
-    const searchLower = searchQuery.toLowerCase();
-<<<<<<< HEAD
-    return players.filter((player) => {
-      const searchMatch =
-        (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
-        (player.first_name || '').toLowerCase().includes(searchLower) ||
-        (player.last_name || '').toLowerCase().includes(searchLower) ||
-        (player.nationality || player.country || '').toLowerCase().includes(searchLower);
-
-      if (!searchMatch) return false;
-
-      if (surfaceFilter !== 'all') {
-        const surfaceKey = `${surfaceFilter}_court_win_pct`;
-        if (!player[surfaceKey]) return false;
-      }
-
-      return true;
-    });
-  }, [players, searchQuery, surfaceFilter]);
-
-  const prefetchPlayer = useCallback(
-    (playerId) => {
-      if (!playerId) return;
-      queryClient.prefetchQuery({
-        queryKey: ['player', playerId],
-        queryFn: () => base44.entities.Player.get(playerId),
-        staleTime: 1000 * 60 * 5,
-      });
-    },
-    [queryClient],
-  );
-=======
-    return players.filter(player => {
-      const searchMatch = (
-        (player.display_name || player.name || '').toLowerCase().includes(searchLower) ||
-        (player.first_name || '').toLowerCase().includes(searchLower) ||
-        (player.last_name || '').toLowerCase().includes(searchLower) ||
-        (player.nationality || player.country || '').toLowerCase().includes(searchLower)
-      );
-  
-      if (!searchMatch) return false;
-  
-      if (surfaceFilter !== 'all') {
-        const surfaceKey = `${surfaceFilter}_court_win_pct`;
-        if (!player[surfaceKey]) return false;
-      }
-  
-      return true;
-    });
-  }, [players, searchQuery, surfaceFilter]);
-
-  const prefetchPlayer = useCallback((playerId) => {
-    if (!playerId) return;
-    queryClient.prefetchQuery({
-      queryKey: ['player', playerId],
-      queryFn: () => base44.entities.Player.get(playerId),
-      staleTime: 1000 * 60 * 5,
-    });
-  }, [queryClient]);
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-
-  const handleEdit = (player) => {
-    setEditingPlayer(player);
-    setShowForm(true);
-    setSelectedPlayer(null);
+  const handleCreatePlayer = async (data) => {
+    try {
+      await getCurrentClient().players.create(data);
+      queryClient.invalidateQueries(['players']);
+      setShowForm(false);
+      toast.success('Player created successfully');
+    } catch (error) {
+      toast.error('Failed to create player');
+    }
   };
 
+  const handleUpdatePlayer = async (id, data) => {
+    try {
+      await getCurrentClient().players.update(id, data);
+      queryClient.invalidateQueries(['players']);
+      setEditingPlayer(null);
+      toast.success('Player updated successfully');
+    } catch (error) {
+      toast.error('Failed to update player');
+    }
+  };
+
+  const handleDeletePlayer = async (id) => {
+    try {
+      await getCurrentClient().players.remove(id);
+      queryClient.invalidateQueries(['players']);
+      setSelectedPlayer(null);
+      toast.success('Player deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete player');
+    }
+  };
+
+  const filterPlayers = useCallback(
+    (players) => {
+      return players.filter((player) => {
+        const matchesSearch = player.display_name?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSurface =
+          surfaceFilter === 'all' ||
+          player[`${surfaceFilter}_court_win_pct`] !== null;
+        return matchesSearch && matchesSurface;
+      });
+    },
+    [searchQuery, surfaceFilter]
+  );
+
+  const filteredPlayers = useMemo(() => {
+    return filterPlayers(players);
+  }, [players, filterPlayers]);
+
   return (
-    <div className="p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Player Database</h1>
-          <p className="text-slate-500 mt-2">Manage player profiles and comprehensive statistics</p>
+    <div className="space-y-8">
+      {/* Header with search and filters */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 items-center space-x-2">
+          <Input
+            placeholder="Search players..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-xs"
+          />
+          <Select value={surfaceFilter} onValueChange={setSurfaceFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Surface" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Surfaces</SelectItem>
+              <SelectItem value="hard">Hard Court</SelectItem>
+              <SelectItem value="clay">Clay Court</SelectItem>
+              <SelectItem value="grass">Grass Court</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="flex gap-2">
-          {players.length === 0 && (
-            <Button variant="outline" onClick={handleGenerateSampleData} disabled={generating}>
-              {generating ? (
-                <>Generating...</>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Sample Data
-                </>
-              )}
-            </Button>
-          )}
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-700"
-            onClick={() => {
-              setEditingPlayer(null);
-              setShowForm(true);
-            }}
-          >
+
+        <div className="space-x-2">
+          <Button onClick={() => setShowForm(true)} className="ml-auto">
             <Plus className="w-4 h-4 mr-2" />
             Add Player
           </Button>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <Input
-            placeholder="Search players by name or nationality..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={surfaceFilter} onValueChange={setSurfaceFilter}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Filter by surface" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Surfaces</SelectItem>
-            <SelectItem value="hard">Hard Court</SelectItem>
-            <SelectItem value="clay">Clay Court</SelectItem>
-            <SelectItem value="grass">Grass Court</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Stats Summary */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="text-sm text-slate-500">Total Players</div>
-          <div className="text-2xl font-bold text-slate-900 mt-1">{players.length}</div>
-        </div>
-        <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="text-sm text-slate-500">With Complete Stats</div>
-          <div className="text-2xl font-bold text-emerald-600 mt-1">
-            {
-              players.filter(
-                (p) => p.first_serve_pct && p.first_return_win_pct && p.hard_court_win_pct,
-              ).length
-            }
-          </div>
-        </div>
-        <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="text-sm text-slate-500">Top 100</div>
-          <div className="text-2xl font-bold text-blue-600 mt-1">
-            {players.filter((p) => p.current_rank && p.current_rank <= 100).length}
-          </div>
-        </div>
-        <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="text-sm text-slate-500">Search Results</div>
-          <div className="text-2xl font-bold text-slate-900 mt-1">{filteredPlayers.length}</div>
-        </div>
-      </div>
-
-      {/* Players Grid */}
-      {isLoading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-64 bg-white rounded-lg animate-pulse shadow-sm" />
-          ))}
-        </div>
-      ) : filteredPlayers.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlayers.map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              onClick={() => setSelectedPlayer(player)}
-              onEdit={handleEdit}
-              onMouseEnter={() => prefetchPlayer(player.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-            <Search className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">No players found</h3>
-          <p className="text-slate-500 mb-4">
-            {searchQuery || surfaceFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Start by adding your first player'}
-          </p>
-          {players.length === 0 ? (
-            <div className="flex gap-2 justify-center">
-              <Button onClick={handleGenerateSampleData} variant="outline" disabled={generating}>
-                <Sparkles className="w-4 h-4 mr-2" />
-                {generating ? 'Generating...' : 'Generate Sample Data'}
-              </Button>
-              <Button
-                onClick={() => {
-                  setEditingPlayer(null);
-                  setShowForm(true);
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Player
-              </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={() => {
-                setSearchQuery('');
-                setSurfaceFilter('all');
-              }}
-              variant="outline"
-            >
-              Clear Filters
+          {players.length === 0 && (
+            <Button onClick={handleGenerateSampleData} variant="outline" disabled={generating}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              {generating ? 'Generating...' : 'Generate Sample Data'}
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Player grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredPlayers.map((player) => (
+          <PlayerCard
+            key={player.id}
+            player={player}
+            onSelect={() => setSelectedPlayer(player)}
+            onEdit={() => setEditingPlayer(player)}
+            onDelete={() => handleDeletePlayer(player.id)}
+          />
+        ))}
+      </div>
+
+      {/* Player stats modal */}
+      {selectedPlayer && (
+        <PlayerStatsModal
+          player={selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+        />
       )}
 
-      {/* Modals */}
-      <PlayerStatsModal
-        player={selectedPlayer}
-        open={!!selectedPlayer}
-        onClose={() => setSelectedPlayer(null)}
-      />
-
-      <PlayerForm
-        player={editingPlayer}
-        open={showForm}
-        onClose={() => {
-          setShowForm(false);
-          setEditingPlayer(null);
-        }}
-      />
+      {/* Player form modal */}
+      {(showForm || editingPlayer) && (
+        <PlayerForm
+          player={editingPlayer}
+          onSubmit={editingPlayer ? handleUpdatePlayer : handleCreatePlayer}
+          onClose={() => {
+            setShowForm(false);
+            setEditingPlayer(null);
+          }}
+        />
+      )}
     </div>
   );
 }

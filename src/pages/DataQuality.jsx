@@ -1,5 +1,4 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { AlertTriangle, CheckCircle, TrendingDown, Edit } from 'lucide-react';
+import { useDataSource } from '@/hooks/use-data-source';
 
 export default function DataQuality() {
-  const { data: players, isLoading } = useQuery({
+  const dataClient = useDataSource();
+
+  const { data: players = [], isLoading } = useQuery({
     queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryFn: () => dataClient.players.list(),
     initialData: [],
   });
 

@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 import React, { useMemo, useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,312 +16,184 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, CalendarClock, Filter } from 'lucide-react';
 import { formatMatchTime } from '../utils/timezone.js';
 import EmptyState from '../components/EmptyState.jsx';
+import { getCurrentClient } from '@/data/dataSourceStore';
 
 export default function MatchHistory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSurface, setSelectedSurface] = useState('all');
   const [selectedPlayer, setSelectedPlayer] = useState('all');
-=======
-import React, { useMemo, useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, CalendarClock, Filter } from "lucide-react";
-import { formatMatchTime } from "../utils/timezone.js";
-import EmptyState from "../components/EmptyState.jsx";
-
-export default function MatchHistory() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSurface, setSelectedSurface] = useState("all");
-  const [selectedPlayer, setSelectedPlayer] = useState("all");
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   const [activeMatch, setActiveMatch] = useState(null);
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-    initialData: [],
+    queryFn: () => getCurrentClient().players.list(),
+  });
+
+  const { data: matches = [], isLoading: matchesLoading } = useQuery({
+    queryKey: ['matches'],
+    queryFn: () => getCurrentClient().matches.list('-utc_start'),
   });
 
   const { data: predictions = [] } = useQuery({
-    queryKey: ['predictions', 'history'],
-    queryFn: () => base44.entities.Prediction.list({ limit: 1000 }),
-    initialData: [],
+    queryKey: ['predictions'],
+    queryFn: () => getCurrentClient().predictions.list(),
   });
 
-  const playerMap = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
+  const getMatchPlayer = (id) => players.find((p) => p.id === id);
+  const getMatchPredictions = (id) => predictions.filter((p) => p.match_id === id);
 
-  const matchFilters = useMemo(() => {
-    const filters = { status: 'completed' };
-    if (selectedSurface !== 'all') {
-      filters.surface = selectedSurface;
+  const filteredMatches = useMemo(() => {
+    return matches.filter((match) => {
+      const p1 = getMatchPlayer(match.player1_id);
+      const p2 = getMatchPlayer(match.player2_id);
+
+      const matchesSearch =
+        !searchTerm ||
+        (p1?.display_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p2?.display_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (match.tournament_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesSurface = selectedSurface === 'all' || match.surface === selectedSurface;
+
+      const matchesPlayer =
+        selectedPlayer === 'all' ||
+        match.player1_id === selectedPlayer ||
+        match.player2_id === selectedPlayer;
+
+      return matchesSearch && matchesSurface && matchesPlayer;
+    });
+  }, [matches, players, searchTerm, selectedSurface, selectedPlayer]);
+
+  const surfaceBadgeColor = (surface) => {
+    switch (surface?.toLowerCase()) {
+      case 'hard':
+        return 'bg-blue-100 text-blue-700';
+      case 'clay':
+        return 'bg-orange-100 text-orange-700';
+      case 'grass':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-slate-100 text-slate-700';
     }
-    if (searchTerm.trim()) {
-      filters.tournament_name = { $contains: searchTerm.trim() };
-    }
-    if (selectedPlayer !== 'all') {
-<<<<<<< HEAD
-      filters.$or = [{ player1_id: selectedPlayer }, { player2_id: selectedPlayer }];
-=======
-      filters.$or = [
-        { player1_id: selectedPlayer },
-        { player2_id: selectedPlayer },
-      ];
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-    }
-    return filters;
-  }, [selectedSurface, searchTerm, selectedPlayer]);
-
-  const {
-    data: historicalMatches = [],
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['matches', 'history', matchFilters],
-    queryFn: async () => {
-      return base44.entities.Match.list({
-        filters: matchFilters,
-        sort: '-utc_start',
-        limit: 100,
-      });
-    },
-    keepPreviousData: true,
-    initialData: [],
-  });
-
-  const relatedPredictions = useMemo(() => {
-    if (!activeMatch) return [];
-    return predictions.filter((p) => p.match_id === activeMatch.id);
-  }, [activeMatch, predictions]);
-
-  const surfaces = ['all', 'hard', 'clay', 'grass'];
-
-  const renderMatchCard = (match) => {
-    const player1 = playerMap.get(match.player1_id);
-    const player2 = playerMap.get(match.player2_id);
-    const matchTime = match.utc_start ? formatMatchTime(match.utc_start) : 'Unknown time';
-
-    return (
-      <div key={match.id} className="relative flex gap-4">
-        <div className="flex flex-col items-center">
-          <div className="w-3 h-3 rounded-full bg-emerald-500 mt-2" />
-          <div className="flex-1 w-px bg-slate-200" />
-        </div>
-        <Card className="flex-1 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 flex flex-col gap-1">
-            <p className="text-xs uppercase tracking-wide text-slate-500">{matchTime}</p>
-            <CardTitle className="text-lg">
-<<<<<<< HEAD
-              {player1?.display_name || player1?.name || 'Player 1'} vs{' '}
-              {player2?.display_name || player2?.name || 'Player 2'}
-            </CardTitle>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span>{match.tournament_name || 'Tournament'}</span>
-              <Badge variant="outline" className="capitalize">
-                {match.surface || 'surface'}
-              </Badge>
-=======
-              {(player1?.display_name || player1?.name || 'Player 1')} vs {player2?.display_name || player2?.name || 'Player 2'}
-            </CardTitle>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span>{match.tournament_name || 'Tournament'}</span>
-              <Badge variant="outline" className="capitalize">{match.surface || 'surface'}</Badge>
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-sm text-slate-600">
-              Best of {match.best_of || 3} • {match.round || 'Round'}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setActiveMatch(match)}>
-                View Predictions
-              </Button>
-<<<<<<< HEAD
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-emerald-600"
-                onClick={() => refetch()}
-              >
-=======
-              <Button variant="ghost" size="sm" className="text-emerald-600" onClick={() => refetch()}>
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-                Refresh
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
   };
 
-  return (
-    <div className="p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
-      <div className="flex flex-col lg:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 flex items-center gap-3">
-            <CalendarClock className="w-8 h-8 text-emerald-600" />
-            Match History
-          </h1>
-          <p className="text-slate-500 mt-2">
-            Explore completed matches, apply filters, and review model predictions at scale.
-          </p>
-        </div>
-      </div>
+  const playerOptions = useMemo(() => {
+    return players
+      .sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''))
+      .map((player) => ({
+        value: player.id,
+        label: player.display_name,
+      }));
+  }, [players]);
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Filter className="w-4 h-4" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-4 gap-4">
+  if (!matchesLoading && matches.length === 0) {
+    return (
+      <EmptyState
+        icon={CalendarClock}
+        title="No matches yet"
+        description="Create your first match to see it appear here."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Filters */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1 flex items-center space-x-2">
           <Input
-            placeholder="Search tournament..."
+            placeholder="Search matches..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-xs"
           />
           <Select value={selectedSurface} onValueChange={setSelectedSurface}>
-            <SelectTrigger>
+            <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Surface" />
             </SelectTrigger>
             <SelectContent>
-              {surfaces.map((surface) => (
-                <SelectItem key={surface} value={surface}>
-<<<<<<< HEAD
-                  {surface === 'all'
-                    ? 'All Surfaces'
-                    : surface.charAt(0).toUpperCase() + surface.slice(1)}
-=======
-                  {surface === 'all' ? 'All Surfaces' : surface.charAt(0).toUpperCase() + surface.slice(1)}
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-                </SelectItem>
-              ))}
+              <SelectItem value="all">All Surfaces</SelectItem>
+              <SelectItem value="hard">Hard Court</SelectItem>
+              <SelectItem value="clay">Clay Court</SelectItem>
+              <SelectItem value="grass">Grass Court</SelectItem>
             </SelectContent>
           </Select>
           <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-            <SelectTrigger>
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by player" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Players</SelectItem>
-              {players.map((player) => (
-                <SelectItem key={player.id} value={player.id}>
-                  {player.display_name || player.name}
+              {playerOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <div className="flex gap-2">
-<<<<<<< HEAD
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedSurface('all');
-                setSelectedPlayer('all');
-              }}
-            >
-=======
-            <Button variant="outline" onClick={() => {
-              setSearchTerm("");
-              setSelectedSurface("all");
-              setSelectedPlayer("all");
-            }}>
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-              Reset
-            </Button>
-            <Button onClick={() => refetch()} disabled={isFetching}>
-              {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Refresh'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3, 4].map((i) => (
-<<<<<<< HEAD
-            <div
-              key={i}
-              className="h-32 bg-white rounded-xl border border-slate-200 animate-pulse"
-            />
-=======
-            <div key={i} className="h-32 bg-white rounded-xl border border-slate-200 animate-pulse" />
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-          ))}
         </div>
-      ) : error ? (
-        <AlertError message="Unable to load historical matches. Please try again." />
-      ) : historicalMatches.length === 0 ? (
-        <EmptyState
-          icon={<CalendarClock className="w-6 h-6 text-emerald-600" />}
-          title="No historical matches"
-          description="Adjust your filters or add completed matches to view history."
-        />
-      ) : (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle>Recent Completed Matches</CardTitle>
-<<<<<<< HEAD
-            <p className="text-sm text-slate-500 mt-1">
-              Showing up to 100 matches. Narrow filters to focus your review.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[600px] pr-4">
-              <div className="space-y-4">{historicalMatches.map(renderMatchCard)}</div>
-=======
-            <p className="text-sm text-slate-500 mt-1">Showing up to 100 matches. Narrow filters to focus your review.</p>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[600px] pr-4">
-              <div className="space-y-4">
-                {historicalMatches.map(renderMatchCard)}
-              </div>
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
+      </div>
 
-      <Dialog open={Boolean(activeMatch)} onOpenChange={(open) => !open && setActiveMatch(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Predictions for {activeMatch?.tournament_name}</DialogTitle>
-          </DialogHeader>
-          {activeMatch ? (
-            <div className="space-y-4">
-              {relatedPredictions.length > 0 ? (
-                relatedPredictions.map((prediction) => {
-                  const winner = playerMap.get(prediction.predicted_winner_id);
-                  return (
-                    <Card key={prediction.id} className="border border-slate-200">
-                      <CardContent className="py-4 flex items-center justify-between">
+      {/* Match list */}
+      <div className="space-y-4">
+        {filteredMatches.map((match) => {
+          const player1 = getMatchPlayer(match.player1_id);
+          const player2 = getMatchPlayer(match.player2_id);
+          const matchPredictions = getMatchPredictions(match.id);
+
+          return (
+            <Card key={match.id} className="overflow-hidden">
+              <CardHeader className="p-4 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-medium">{match.tournament_name}</CardTitle>
+                  <div className="text-sm text-slate-500">{formatMatchTime(match.utc_start)}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className={surfaceBadgeColor(match.surface)}>
+                    {match.surface}
+                  </Badge>
+                  <Button variant="ghost" onClick={() => setActiveMatch(match)}>
+                    View Details
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Players */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">{player1?.display_name}</div>
+                    <div className="text-xs text-slate-500">
+                      Rank: {player1?.current_rank || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">{player2?.display_name}</div>
+                    <div className="text-xs text-slate-500">
+                      Rank: {player2?.current_rank || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                {/* Predictions */}
+                <div className="space-y-2">
+                  {matchPredictions.map((prediction) => {
+                    const winner = getMatchPlayer(prediction.predicted_winner_id);
+                    return (
+                      <div
+                        key={prediction.id}
+                        className="flex items-center justify-between text-sm"
+                      >
                         <div>
-                          <div className="text-sm text-slate-500">Model</div>
-                          <div className="font-semibold capitalize">{prediction.model_type}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm text-slate-500">Predicted Winner</div>
-<<<<<<< HEAD
-                          <div className="font-semibold">
-                            {winner?.display_name || winner?.name || 'Pending'}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {prediction.player1_win_probability?.toFixed(1)}% /{' '}
-                            {prediction.player2_win_probability?.toFixed(1)}%
-                          </div>
+                          <Badge
+                            variant="secondary"
+                            className={`capitalize ${
+                              prediction.model_type === 'ml'
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-slate-100'
+                            }`}
+                          >
+                            {prediction.model_type}
+                          </Badge>
+                          <span className="ml-2">{winner?.display_name}</span>
                         </div>
                         <Badge
                           className={
@@ -339,43 +209,63 @@ export default function MatchHistory() {
                             : prediction.was_correct
                             ? 'Correct'
                             : 'Incorrect'}
-=======
-                          <div className="font-semibold">{winner?.display_name || winner?.name || 'Pending'}</div>
-                          <div className="text-xs text-slate-500">
-                            {prediction.player1_win_probability?.toFixed(1)}% / {prediction.player2_win_probability?.toFixed(1)}%
-                          </div>
-                        </div>
-                        <Badge className={
-                          prediction.was_correct === true ? 'bg-emerald-100 text-emerald-700' :
-                          prediction.was_correct === false ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-600'
-                        }>
-                          {prediction.was_correct === null || prediction.was_correct === undefined
-                            ? 'Pending'
-                            : prediction.was_correct
-                              ? 'Correct'
-                              : 'Incorrect'}
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
                         </Badge>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-slate-500">No predictions stored for this match yet.</p>
-              )}
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-function AlertError({ message }) {
-  return (
-    <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm">
-      {message}
+      {/* Match details dialog */}
+      {activeMatch && (
+        <Dialog open onOpenChange={() => setActiveMatch(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Match Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium">Tournament</h3>
+                <p className="text-sm text-slate-500">{activeMatch.tournament_name}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium">Surface</h3>
+                <Badge variant="secondary" className={surfaceBadgeColor(activeMatch.surface)}>
+                  {activeMatch.surface}
+                </Badge>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium">Date & Time</h3>
+                <p className="text-sm text-slate-500">{formatMatchTime(activeMatch.utc_start)}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium">Format</h3>
+                <p className="text-sm text-slate-500">Best of {activeMatch.best_of}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium">Players</h3>
+                <div className="space-y-2 mt-2">
+                  {[activeMatch.player1_id, activeMatch.player2_id].map((playerId) => {
+                    const player = getMatchPlayer(playerId);
+                    return (
+                      <div key={playerId} className="text-sm">
+                        <div className="font-medium">{player?.display_name}</div>
+                        <div className="text-slate-500">
+                          Rank: {player?.current_rank || 'N/A'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
