@@ -13,6 +13,11 @@ import {
   FileText,
   HelpCircle,
   CalendarClock,
+  Radio,
+  Trophy,
+  Activity,
+  LineChart,
+  Menu,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -29,9 +34,16 @@ import {
 } from '@/components/ui/sidebar';
 import ErrorBoundary from './components/ErrorBoundary';
 import { DataSourceSelector } from '@/components/DataSourceSelector';
+import ThemeToggle from './components/ThemeToggle';
+import ApiUsageStats from './components/ApiUsageStats';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard', group: 'navigation' },
+  { name: 'Live Games', icon: Radio, path: 'LiveGames', group: 'navigation' },
+  { name: 'Top Players', icon: Trophy, path: 'TopPlayers', group: 'navigation' },
+  { name: 'Tournaments', icon: Trophy, path: 'Tournaments', group: 'navigation' },
+  { name: 'Live Players', icon: Activity, path: 'LivePlayers', group: 'navigation' },
+  { name: 'Data Analysis', icon: LineChart, path: 'DataAnalysis', group: 'navigation' },
   { name: 'Players', icon: Users, path: 'Players', group: 'navigation' },
   { name: 'Match Analysis', icon: TrendingUp, path: 'MatchAnalysis', group: 'navigation' },
   { name: 'Predictions', icon: Target, path: 'Predictions', group: 'navigation' },
@@ -46,110 +58,172 @@ const navItems = [
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const navigationGroupItems = navItems.filter((item) => item.group === 'navigation');
   const adminGroupItems = navItems.filter((item) => item.group === 'admin');
 
   return (
     <ErrorBoundary>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-slate-50">
-          <Sidebar className="border-r border-slate-200 bg-white">
-            <SidebarHeader className="border-b border-slate-200 p-6">
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+        {/* TOP HEADER NAVIGATION - Desktop */}
+        <header className="hidden md:block bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-8">
+                {/* Logo */}
+                <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-slate-900 dark:text-slate-100 text-lg">TennisPro</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Match Analytics</p>
+                  </div>
+                </Link>
+
+                {/* Main Navigation */}
+                <nav className="flex items-center gap-1">
+                  {navigationGroupItems.map((item) => {
+                    const itemUrl = createPageUrl(item.path);
+                    const isActive = location.pathname === itemUrl;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={itemUrl}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                          isActive
+                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span className="hidden lg:inline">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Right side: Data Source + Theme Toggle */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-slate-900 text-lg">TennisPro</h2>
-                  <p className="text-xs text-slate-500">Match Analytics</p>
-                </div>
-              </div>
-            </SidebarHeader>
-
-            <SidebarContent className="p-3">
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
-                  Navigation
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {navigationGroupItems.map((item) => {
-                      const itemUrl = createPageUrl(item.path);
-                      return (
-                        <SidebarMenuItem key={item.name}>
-                          <SidebarMenuButton
-                            asChild
-                            className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-200 rounded-xl mb-1 ${
-                              location.pathname === itemUrl
-                                ? 'bg-emerald-50 text-emerald-700 font-medium'
-                                : 'text-slate-600'
-                            }`}
-                          >
-                            <Link to={itemUrl} className="flex items-center gap-3 px-3 py-2.5">
-                              <item.icon className="w-5 h-5" />
-                              <span>{item.name}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-
-              {/* Admin Tools Section */}
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2 mt-4">
-                  Admin Tools
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {adminGroupItems.map((item) => {
-                      const itemUrl = createPageUrl(item.path);
-                      return (
-                        <SidebarMenuItem key={item.name}>
-                          <SidebarMenuButton
-                            asChild
-                            className={`hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 rounded-xl mb-1 ${
-                              location.pathname === itemUrl
-                                ? 'bg-purple-50 text-purple-700 font-medium'
-                                : 'text-slate-600'
-                            }`}
-                          >
-                            <Link to={itemUrl} className="flex items-center gap-3 px-3 py-2.5">
-                              <item.icon className="w-5 h-5" />
-                              <span>{item.name}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-          </Sidebar>
-
-          <main className="flex-1 flex flex-col">
-            <header className="bg-white border-b border-slate-200 px-6 py-4 lg:hidden">
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-4">
-                  <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors" />
-                  <h1 className="text-xl font-bold text-slate-900">TennisPro</h1>
-                </div>
                 <DataSourceSelector />
+                <ThemeToggle />
               </div>
-            </header>
-
-            <div className="hidden border-b border-slate-200 bg-white px-6 py-4 lg:flex lg:justify-end">
-              <DataSourceSelector />
             </div>
 
-            <div className="flex-1 overflow-auto">{children}</div>
-          </main>
-        </div>
-      </SidebarProvider>
+            {/* Admin Tools - Secondary Row */}
+            <div className="flex items-center gap-1 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-3">
+                Admin
+              </span>
+              {adminGroupItems.map((item) => {
+                const itemUrl = createPageUrl(item.path);
+                const isActive = location.pathname === itemUrl;
+                return (
+                  <Link
+                    key={item.name}
+                    to={itemUrl}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 ${
+                      isActive
+                        ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <item.icon className="w-3 h-3" />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </header>
+
+        {/* MOBILE HEADER */}
+        <header className="md:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="font-bold text-slate-900 dark:text-slate-100">TennisPro</h2>
+              </Link>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+                >
+                  <Menu className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Menu Dropdown */}
+            {mobileMenuOpen && (
+              <div className="mt-3 pb-2 space-y-1">
+                <DataSourceSelector />
+                <div className="mt-2 space-y-1">
+                  {navigationGroupItems.map((item) => {
+                    const itemUrl = createPageUrl(item.path);
+                    const isActive = location.pathname === itemUrl;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={itemUrl}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
+                          isActive
+                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
+                            : 'text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase px-3">
+                    Admin Tools
+                  </span>
+                  <div className="mt-2 space-y-1">
+                    {adminGroupItems.map((item) => {
+                      const itemUrl = createPageUrl(item.path);
+                      const isActive = location.pathname === itemUrl;
+                      return (
+                        <Link
+                          key={item.name}
+                          to={itemUrl}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
+                            isActive
+                              ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium'
+                              : 'text-slate-600 dark:text-slate-400'
+                          }`}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* MAIN CONTENT */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+
+        {/* API Usage Stats Widget */}
+        <ApiUsageStats />
+      </div>
     </ErrorBoundary>
   );
 }
