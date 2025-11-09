@@ -138,7 +138,8 @@ export class LocalDataClient implements DataClient {
         surface: DEFAULT_SURFACES[i % DEFAULT_SURFACES.length],
         round: 'QF',
         best_of: 3,
-        utc_start: new Date(Date.now() - i * 86400000).toISOString(),
+        // stagger seed match start times by days
+        utc_start: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
         status: 'completed',
       });
       this.createPredictionsForMatch(match);

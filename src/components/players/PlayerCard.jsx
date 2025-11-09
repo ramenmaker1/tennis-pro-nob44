@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, Target, Zap, Edit, Eye } from 'lucide-react';
 import { calculateDataCompleteness, getDataQualityBadge } from '../../utils/sampleData.js';
 
-<<<<<<< HEAD
 function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
   const age = useMemo(
     () => (player.birth_year ? new Date().getFullYear() - player.birth_year : null),
@@ -14,23 +13,6 @@ function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
   const completeness = useMemo(() => calculateDataCompleteness(player), [player]);
   const qualityBadge = useMemo(() => getDataQualityBadge(completeness), [completeness]);
 
-=======
-import React, { memo, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { TrendingUp, Target, Zap, Edit, Eye } from "lucide-react";
-import { calculateDataCompleteness, getDataQualityBadge } from "../../utils/sampleData.js";
-
-function PlayerCard({ player, onClick, onEdit, onMouseEnter }) {
-  const age = useMemo(
-    () => (player.birth_year ? new Date().getFullYear() - player.birth_year : null),
-    [player.birth_year]
-  );
-  const completeness = useMemo(() => calculateDataCompleteness(player), [player]);
-  const qualityBadge = useMemo(() => getDataQualityBadge(completeness), [completeness]);
-
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
   return (
     <Card
       className="hover:shadow-lg transition-all duration-300 bg-white border-slate-200 group relative overflow-hidden"

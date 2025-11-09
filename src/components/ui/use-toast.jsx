@@ -2,7 +2,8 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 
 const TOAST_LIMIT = 20;
-const TOAST_REMOVE_DELAY = 1000000;
+// default remove delay for toasts (ms)
+const TOAST_REMOVE_DELAY = 4000;
 
 const actionTypes = {
   ADD_TOAST: 'ADD_TOAST',
@@ -79,7 +80,7 @@ export const reducer = (state, action) => {
                 ...t,
                 open: false,
               }
-            : t
+            : t,
         ),
       };
     }

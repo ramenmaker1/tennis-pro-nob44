@@ -1,5 +1,7 @@
 export type ID = string;
 
+export type ConfidenceLevel = 'low' | 'medium' | 'high';
+
 export interface ListOptions {
   filters?: Record<string, any>;
   sort?: string;
@@ -51,7 +53,7 @@ export interface Prediction {
   predicted_winner_id?: ID;
   player1_win_probability?: number;
   player2_win_probability?: number;
-  confidence_level?: 'low' | 'medium' | 'high';
+  confidence_level?: ConfidenceLevel;
   key_factors?: string[];
   created_at?: string;
   created_date?: string;

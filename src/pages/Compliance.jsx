@@ -160,12 +160,8 @@ export default function Compliance() {
                       </td>
                       <td className="py-3 px-2 text-center">
                         <Badge className={statusColors[source.compliance_status]}>
-<<<<<<< HEAD
-                          {statusGlyphs[source.compliance_status]}{' '}
+{statusGlyphs[source.compliance_status]}{' '}
                           {source.compliance_status.replace('_', ' ')}
-=======
-                          {statusGlyphs[source.compliance_status]} {source.compliance_status.replace('_', ' ')}
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
                         </Badge>
                       </td>
                       <td className="py-3 px-2 text-center text-sm text-slate-600">

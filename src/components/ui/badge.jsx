@@ -14,16 +14,38 @@ const badgeVariants = cva(
         destructive:
           'border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80',
         outline: 'text-foreground',
+        success: 'border-emerald-200 bg-emerald-100 text-emerald-700',
+        warning: 'border-yellow-200 bg-yellow-100 text-yellow-700',
+        info: 'border-slate-200 bg-slate-100 text-slate-700',
       },
     },
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 );
 
-function Badge({ className, variant, ...props }) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
-}
+/**
+ * @typedef {'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'} BadgeVariant
+ */
+
+/**
+ * @typedef {Object} BadgeProps
+ * @property {string} [className]
+ * @property {BadgeVariant} [variant]
+ * @property {React.ReactNode} [children]
+ */
+
+/**
+ * @type {React.ForwardRefExoticComponent<BadgeProps & React.RefAttributes<HTMLDivElement>>}
+ */
+const Badge = React.forwardRef(({ className, variant = 'default', children, ...rest }, ref) => {
+  return (
+    <div ref={ref} className={cn(badgeVariants({ variant }), className)} {...rest}>
+      {children}
+    </div>
+  );
+});
+Badge.displayName = 'Badge';
 
 export { Badge, badgeVariants };

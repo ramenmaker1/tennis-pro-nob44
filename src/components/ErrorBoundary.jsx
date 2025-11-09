@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from 'react';
 import * as Sentry from '@sentry/react';
 import { Button } from '@/components/ui/button';
@@ -6,15 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-=======
-import React from "react";
-import * as Sentry from "@sentry/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, RefreshCw, Home } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -27,11 +17,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-<<<<<<< HEAD
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-=======
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
     if (Sentry?.captureException) {
       Sentry.captureException(error, {
         extra: { componentStack: errorInfo?.componentStack },

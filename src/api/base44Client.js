@@ -1,23 +1,11 @@
 import { getCurrentClient } from '@/data/dataSourceStore';
 
-<<<<<<< HEAD
 const wrapService = (key) => ({
   list: (...args) => getCurrentClient()[key].list(...args),
   get: (...args) => getCurrentClient()[key].get?.(...args),
   create: (...args) => getCurrentClient()[key].create?.(...args),
   update: (...args) => getCurrentClient()[key].update?.(...args),
   remove: (...args) => getCurrentClient()[key].remove?.(...args),
-=======
-const { appId, serverUrl, token, functionsVersion } = appParams;
-
-//Create a client with authentication required
-export const base44 = createClient({
-  appId,
-  serverUrl,
-  token,
-  functionsVersion,
-  requiresAuth: true
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 });
 
 export const base44 = {

@@ -1,3 +1,4 @@
+/// <reference types="../types/env.d.ts" />
 import { createClient } from '@supabase/supabase-js';
 import type {
   DataClient,
@@ -5,6 +6,7 @@ import type {
   Match,
   Player,
   Prediction,
+  ConfidenceLevel,
 } from './DataClient';
 import { localDataClient } from './LocalClient';
 
@@ -15,31 +17,47 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabaseAvailable = Boolean(supabaseUrl && supabaseAnonKey);
 
-const supabase = supabaseAvailable && supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false },
-    })
-  : null;
+const supabase =
+  supabaseAvailable && supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: false },
+      })
+    : null;
+
+type FilterValue = string | number | boolean | null | { $contains?: string; $in?: unknown[] };
+type FilterCondition = Record<string, FilterValue>;
+type Filters = Record<string, FilterValue | FilterCondition[]>;
 
 type NormalizedOptions = {
-  filters?: Record<string, any>;
+  filters?: Filters;
   sort?: { field: string; direction: SortDirection; original: string };
   limit?: number;
 };
 
 const normalizeOptions = (options?: string | ListOptions): NormalizedOptions => {
   if (!options) return {};
+
+  let normalized: NormalizedOptions = {};
+
   if (typeof options === 'string') {
     const field = options.replace(/^[-+]/, '');
     const direction: SortDirection = options.startsWith('-') ? 'desc' : 'asc';
-    return { sort: { field, direction, original: options } };
+    normalized.sort = { field, direction, original: options };
+  } else {
+    if (options.filters) {
+      normalized.filters = options.filters as Filters;
+    }
+    if (options.sort) {
+      const field = options.sort.replace(/^[-+]/, '');
+      const direction: SortDirection = options.sort.startsWith('-') ? 'desc' : 'asc';
+      normalized.sort = { field, direction, original: options.sort };
+    }
+    if (options.limit) {
+      normalized.limit = options.limit;
+    }
   }
-  if (options.sort) {
-    const field = options.sort.replace(/^[-+]/, '');
-    const direction: SortDirection = options.sort.startsWith('-') ? 'desc' : 'asc';
-    return { ...options, sort: { field, direction, original: options.sort } };
-  }
-  return { ...options };
+
+  return normalized;
 };
 
 const sortRecords = <T>(records: T[], sort?: string) => {
@@ -57,13 +75,18 @@ const sortRecords = <T>(records: T[], sort?: string) => {
   });
 };
 
-const matchesCondition = (record: any, condition: Record<string, any>): boolean => {
+const matchesCondition = <T extends Record<string, unknown>>(
+  record: T,
+  condition: Record<string, unknown>,
+): boolean => {
   return Object.entries(condition).every(([key, value]) => {
     if (value == null) return true;
     if (typeof value === 'object') {
       if ('$contains' in value) {
         const needle = String(value.$contains).toLowerCase();
-        return String(record[key] ?? '').toLowerCase().includes(needle);
+        return String(record[key] ?? '')
+          .toLowerCase()
+          .includes(needle);
       }
       if ('$in' in value) {
         return Array.isArray(value.$in) ? value.$in.includes(record[key]) : true;
@@ -73,22 +96,22 @@ const matchesCondition = (record: any, condition: Record<string, any>): boolean 
   });
 };
 
-const applyFilters = <T>(records: T[], filters?: Record<string, any>) => {
+const applyFilters = <T extends Record<string, unknown>>(records: T[], filters?: Filters) => {
   if (!filters) return records;
   return records.filter((record) => {
     return Object.entries(filters).every(([key, value]) => {
       if (key === '$or' && Array.isArray(value)) {
-        return value.some((group) => matchesCondition(record, group));
+        return value.some((group) => matchesCondition(record as Record<string, unknown>, group));
       }
       if (typeof value === 'object' && value !== null) {
-        return matchesCondition(record, { [key]: value });
+        return matchesCondition(record as Record<string, unknown>, { [key]: value });
       }
-      return record[key as keyof T] === value;
+      return record[key] === value;
     });
   });
 };
 
-const playerSortMap: Record<string, string> = {
+const playerSortMap: Readonly<Record<string, string>> = {
   created_date: 'created_at',
   created_at: 'created_at',
   display_name: 'display_name',
@@ -97,13 +120,13 @@ const playerSortMap: Record<string, string> = {
   rank: 'rank',
 };
 
-const matchSortMap: Record<string, string> = {
+const matchSortMap: Readonly<Record<string, string>> = {
   created_date: 'created_at',
   created_at: 'created_at',
   utc_start: 'start_time_utc',
 };
 
-const predictionSortMap: Record<string, string> = {
+const predictionSortMap: Readonly<Record<string, string>> = {
   created_date: 'created_at',
   created_at: 'created_at',
 };
@@ -220,8 +243,8 @@ const mapMatchToRow = (payload: Partial<Match>) => {
     player_a_id: payload.player1_id ?? raw.player_a_id ?? null,
     player_b_id: payload.player2_id ?? raw.player_b_id ?? null,
     tournament: payload.tournament_name ?? raw.tournament ?? null,
-  round: payload.round ?? null,
-  surface: payload.surface ?? null,
+    round: payload.round ?? null,
+    surface: payload.surface ?? null,
     start_time_utc: payload.utc_start ?? raw.start_time_utc ?? new Date().toISOString(),
     best_of: payload.best_of ?? raw.best_of ?? 3,
     status: payload.status ?? raw.status ?? 'scheduled',
@@ -265,16 +288,14 @@ const mapPredictionToRow = (payload: Partial<Prediction>) => {
     was_correct: payload.was_correct ?? raw.was_correct ?? null,
     completed_at: payload.completed_at ?? raw.completed_at ?? null,
     notes: payload.notes ?? raw.notes ?? null,
-    metadata: payload.metadata
-      ? JSON.stringify(payload.metadata)
-      : raw.metadata ?? null,
+    metadata: payload.metadata ? JSON.stringify(payload.metadata) : raw.metadata ?? null,
     point_by_point_data: payload.point_by_point_data
       ? JSON.stringify(payload.point_by_point_data)
       : raw.point_by_point_data ?? null,
   };
 };
 
-const mapSortColumn = (sortField: string, map: Record<string, string>) =>
+const mapSortColumn = (sortField: string, map: Readonly<Record<string, string>>) =>
   map[sortField] ?? sortField;
 
 const playersService = supabase
@@ -300,7 +321,11 @@ const playersService = supabase
         return results;
       },
       get: async (id: string) => {
-        const { data, error } = await supabase.from('players').select('*').eq('id', id).maybeSingle();
+        const { data, error } = await supabase
+          .from('players')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
         if (error) throw new Error(error.message);
         return data ? mapPlayerFromRow(data) : undefined;
       },

@@ -12,8 +12,6 @@ const BulkImport = lazy(() => import('./pages/BulkImport'));
 const Compliance = lazy(() => import('./pages/Compliance'));
 const DataQuality = lazy(() => import('./pages/DataQuality'));
 const Help = lazy(() => import('./pages/Help'));
-<<<<<<< HEAD
-
 export const PAGES = {
   Dashboard: Dashboard,
   Players: Players,
@@ -32,26 +30,4 @@ export const pagesConfig = {
   mainPage: 'Dashboard',
   Pages: PAGES,
   Layout: Layout,
-=======
-
-
-export const PAGES = {
-    "Dashboard": Dashboard,
-    "Players": Players,
-    "MatchAnalysis": MatchAnalysis,
-    "Predictions": Predictions,
-    "Analytics": Analytics,
-    "MatchHistory": MatchHistory,
-    "BulkImport": BulkImport,
-    "Compliance": Compliance,
-    "DataQuality": DataQuality,
-    "Help": Help,
-    "MLDashboard": MLDashboard,
-}
-
-export const pagesConfig = {
-    mainPage: "Dashboard",
-    Pages: PAGES,
-    Layout: Layout,
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 };

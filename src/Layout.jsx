@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -15,13 +14,6 @@ import {
   HelpCircle,
   CalendarClock,
 } from 'lucide-react';
-=======
-
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { LayoutDashboard, Users, TrendingUp, BarChart3, Target, Brain, Upload, Shield, FileText, HelpCircle, CalendarClock } from "lucide-react";
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 import {
   Sidebar,
   SidebarContent,
@@ -39,7 +31,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { DataSourceSelector } from '@/components/DataSourceSelector';
 
 const navItems = [
-<<<<<<< HEAD
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard', group: 'navigation' },
   { name: 'Players', icon: Users, path: 'Players', group: 'navigation' },
   { name: 'Match Analysis', icon: TrendingUp, path: 'MatchAnalysis', group: 'navigation' },
@@ -51,19 +42,6 @@ const navItems = [
   { name: 'Data Quality', icon: Shield, path: 'DataQuality', group: 'admin' },
   { name: 'Compliance', icon: FileText, path: 'Compliance', group: 'admin' },
   { name: 'Help', icon: HelpCircle, path: 'Help', group: 'admin' },
-=======
-  { name: "Dashboard", icon: LayoutDashboard, path: "Dashboard", group: "navigation" },
-  { name: "Players", icon: Users, path: "Players", group: "navigation" },
-  { name: "Match Analysis", icon: TrendingUp, path: "MatchAnalysis", group: "navigation" },
-  { name: "Predictions", icon: Target, path: "Predictions", group: "navigation" },
-  { name: "Analytics", icon: BarChart3, path: "Analytics", group: "navigation" },
-  { name: "Match History", icon: CalendarClock, path: "MatchHistory", group: "navigation" },
-  { name: "ML Dashboard", icon: Brain, path: "MLDashboard", group: "navigation" },
-  { name: "Bulk Import", icon: Upload, path: "BulkImport", group: "admin" },
-  { name: "Data Quality", icon: Shield, path: "DataQuality", group: "admin" },
-  { name: "Compliance", icon: FileText, path: "Compliance", group: "admin" },
-  { name: "Help", icon: HelpCircle, path: "Help", group: "admin" },
->>>>>>> 93b199770ad6bdfb6dd2756c9afae9a1983d3fde
 ];
 
 export default function Layout({ children }) {

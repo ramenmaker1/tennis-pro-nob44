@@ -68,7 +68,9 @@ export default function MatchAnalysis() {
         predictions = [await client.predictions.create(mlPrediction)];
       } else {
         const standardPredictions = generateAllPredictions(match, player1, player2);
-        predictions = await Promise.all(standardPredictions.map((p) => client.predictions.create(p)));
+        predictions = await Promise.all(
+          standardPredictions.map((p) => client.predictions.create(p)),
+        );
       }
 
       return { match, predictions };
@@ -105,3 +107,80 @@ export default function MatchAnalysis() {
 
     createMatchMutation.mutate(formData);
   };
+
+  return (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Match Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="player1">Player 1</Label>
+                <Select
+                  value={formData.player1_id}
+                  onValueChange={(v) => setFormData({ ...formData, player1_id: v })}
+                >
+                  <SelectTrigger id="player1">
+                    <SelectValue placeholder="Select player 1" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {players.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.display_name || p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="player2">Player 2</Label>
+                <Select
+                  value={formData.player2_id}
+                  onValueChange={(v) => setFormData({ ...formData, player2_id: v })}
+                >
+                  <SelectTrigger id="player2">
+                    <SelectValue placeholder="Select player 2" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {players.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.display_name || p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button type="submit" disabled={createMatchMutation.isLoading}>
+                {createMatchMutation.isLoading ? (
+                  <Loader2 className="animate-spin h-4 w-4" />
+                ) : (
+                  'Create'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setFormData({ ...formData, player1_id: '', player2_id: '' })}
+              >
+                Reset
+              </Button>
+            </div>
+
+            {error && (
+              <Alert>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
