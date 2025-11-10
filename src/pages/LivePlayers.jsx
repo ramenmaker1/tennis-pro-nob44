@@ -7,14 +7,27 @@ import { getCurrentClient } from '@/data/dataSourceStore';
 import { enrichMatchesWithLocalPlayers } from '@/utils/playerMatcher';
 
 export default function LivePlayers() {
-  // Fetch local players for matching
+  // Fetch local players for matching - with error handling
   const { data: dbPlayers = [] } = useQuery({
     queryKey: ['players'],
-    queryFn: () => getCurrentClient().players.list('-created_date'),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client || !client.players || !client.players.list) {
+          return [];
+        }
+        return await client.players.list('-created_date');
+      } catch (error) {
+        console.warn('Failed to load players for matching:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
+    staleTime: 1000 * 60 * 5,
   });
 
-  const { data: rawMatches } = useQuery(
+  const { data: rawMatches, error: matchesError } = useQuery(
     ['liveMatchesForPlayers'],
     getLiveMatches,
     {
@@ -23,21 +36,33 @@ export default function LivePlayers() {
       refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
       refetchOnWindowFocus: false,
       refetchOnMount: false,
+      retry: 1,
     }
   );
 
-  // Enrich matches with local player data
+  // Enrich matches with local player data - with null checks
   const matches = useMemo(() => {
-    return enrichMatchesWithLocalPlayers(rawMatches, dbPlayers);
+    if (!rawMatches || !Array.isArray(rawMatches)) return [];
+    if (!dbPlayers || !Array.isArray(dbPlayers) || dbPlayers.length === 0) {
+      return rawMatches; // Return raw matches if no players to match
+    }
+    try {
+      return enrichMatchesWithLocalPlayers(rawMatches, dbPlayers);
+    } catch (error) {
+      console.warn('Failed to enrich live matches:', error);
+      return rawMatches;
+    }
   }, [rawMatches, dbPlayers]);
 
   // Extract unique players from live matches
   const players = useMemo(() => {
-    if (!matches) return [];
+    if (!matches || !Array.isArray(matches)) return [];
     
     const playerSet = new Map();
     
     matches.forEach((m) => {
+      if (!m) return; // Skip null/undefined matches
+      
       if (m.player_a) {
         const playerId = m.player_a_slug || m.player_a_id || m.player_a.toLowerCase().replace(/\s+/g, '-');
         playerSet.set(m.player_a, {
@@ -45,7 +70,7 @@ export default function LivePlayers() {
           id: playerId,
           slug: m.player_a_slug,
           match: m,
-          opponent: m.player_b,
+          opponent: m.player_b || 'TBD',
           playerData: m.player_a_data,
         });
       }
@@ -56,7 +81,7 @@ export default function LivePlayers() {
           id: playerId,
           slug: m.player_b_slug,
           match: m,
-          opponent: m.player_a,
+          opponent: m.player_a || 'TBD',
           playerData: m.player_b_data,
         });
       }

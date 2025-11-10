@@ -10,14 +10,27 @@ import { enrichMatchesWithLocalPlayers } from '@/utils/playerMatcher';
 export default function LiveGames() {
   const [activeTab, setActiveTab] = useState('live');
 
-  // Fetch local players for matching
-  const { data: dbPlayers = [] } = useQuery({
+  // Fetch local players for matching - with error handling
+  const { data: dbPlayers = [], isError: playersError } = useQuery({
     queryKey: ['players'],
-    queryFn: () => getCurrentClient().players.list('-created_date'),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client || !client.players || !client.players.list) {
+          return [];
+        }
+        return await client.players.list('-created_date');
+      } catch (error) {
+        console.warn('Failed to load players for matching:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
+    staleTime: 1000 * 60 * 5,
   });
 
-  const { data: rawLiveMatches, isLoading: loadingLive } = useQuery(
+  const { data: rawLiveMatches, isLoading: loadingLive, error: liveError } = useQuery(
     ['liveMatches'],
     getLiveMatches,
     {
@@ -26,10 +39,11 @@ export default function LiveGames() {
       refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
       refetchOnWindowFocus: false,
       refetchOnMount: false,
+      retry: 1,
     }
   );
 
-  const { data: rawUpcomingMatches, isLoading: loadingUpcoming } = useQuery(
+  const { data: rawUpcomingMatches, isLoading: loadingUpcoming, error: upcomingError } = useQuery(
     ['upcomingMatches'],
     getUpcomingMatches,
     {
@@ -37,16 +51,35 @@ export default function LiveGames() {
       cacheTime: 1000 * 60 * 60, // 1 hour
       refetchOnWindowFocus: false,
       refetchOnMount: false,
+      retry: 1,
     }
   );
 
-  // Enrich matches with local player data
+  // Enrich matches with local player data - with null checks
   const liveMatches = useMemo(() => {
-    return enrichMatchesWithLocalPlayers(rawLiveMatches, dbPlayers);
+    if (!rawLiveMatches || !Array.isArray(rawLiveMatches)) return [];
+    if (!dbPlayers || !Array.isArray(dbPlayers) || dbPlayers.length === 0) {
+      return rawLiveMatches; // Return raw matches if no players to match
+    }
+    try {
+      return enrichMatchesWithLocalPlayers(rawLiveMatches, dbPlayers);
+    } catch (error) {
+      console.warn('Failed to enrich live matches:', error);
+      return rawLiveMatches;
+    }
   }, [rawLiveMatches, dbPlayers]);
 
   const upcomingMatches = useMemo(() => {
-    return enrichMatchesWithLocalPlayers(rawUpcomingMatches, dbPlayers);
+    if (!rawUpcomingMatches || !Array.isArray(rawUpcomingMatches)) return [];
+    if (!dbPlayers || !Array.isArray(dbPlayers) || dbPlayers.length === 0) {
+      return rawUpcomingMatches; // Return raw matches if no players to match
+    }
+    try {
+      return enrichMatchesWithLocalPlayers(rawUpcomingMatches, dbPlayers);
+    } catch (error) {
+      console.warn('Failed to enrich upcoming matches:', error);
+      return rawUpcomingMatches;
+    }
   }, [rawUpcomingMatches, dbPlayers]);
 
   return (
@@ -79,6 +112,12 @@ export default function LiveGames() {
         <TabsContent value="live">
           {loadingLive ? (
             <div className="text-sm text-slate-500 dark:text-slate-400">Loading live matches...</div>
+          ) : liveError ? (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-400">
+                Failed to load live matches. Please try again later.
+              </div>
+            </div>
           ) : (
             <>
               {(!liveMatches || liveMatches.length === 0) && (
@@ -100,6 +139,12 @@ export default function LiveGames() {
         <TabsContent value="upcoming">
           {loadingUpcoming ? (
             <div className="text-sm text-slate-500 dark:text-slate-400">Loading upcoming matches...</div>
+          ) : upcomingError ? (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="text-sm text-red-700 dark:text-red-400">
+                Failed to load upcoming matches. Please try again later.
+              </div>
+            </div>
           ) : (
             <>
               {(!upcomingMatches || upcomingMatches.length === 0) && (
@@ -122,7 +167,11 @@ export default function LiveGames() {
 }
 
 function MatchCard({ match, isLive }) {
+  // Safety check for match object
+  if (!match) return null;
+
   const getPlayerLink = (playerName, playerSlug, playerId) => {
+    if (!playerName) return '/players';
     // Use slug from matched player, fall back to ID or name-based slug
     if (playerSlug) {
       return `/player/${playerSlug}`;
@@ -139,7 +188,7 @@ function MatchCard({ match, isLive }) {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              {match.tournament} • {match.round} • {match.surface}
+              {match.tournament || 'Unknown Tournament'} • {match.round || 'Round'} • {match.surface || 'Court'}
             </div>
             {isLive && (
               <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-medium rounded-full animate-pulse">
@@ -154,32 +203,36 @@ function MatchCard({ match, isLive }) {
           </div>
           
           <div className="space-y-1">
-            <Link 
-              to={getPlayerLink(match.player_a, match.player_a_slug, match.player_a_id)}
-              className={`block font-medium text-lg hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${
-                match.player_a_data ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {match.player_a}
-              {match.player_a_data && match.player_a_data.current_rank && (
-                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
-                  (#{match.player_a_data.current_rank})
-                </span>
-              )}
-            </Link>
-            <Link 
-              to={getPlayerLink(match.player_b, match.player_b_slug, match.player_b_id)}
-              className={`block hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${
-                match.player_b_data ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              vs {match.player_b}
-              {match.player_b_data && match.player_b_data.current_rank && (
-                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
-                  (#{match.player_b_data.current_rank})
-                </span>
-              )}
-            </Link>
+            {match.player_a && (
+              <Link 
+                to={getPlayerLink(match.player_a, match.player_a_slug, match.player_a_id)}
+                className={`block font-medium text-lg hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${
+                  match.player_a_data ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {match.player_a}
+                {match.player_a_data && match.player_a_data.current_rank && (
+                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                    (#{match.player_a_data.current_rank})
+                  </span>
+                )}
+              </Link>
+            )}
+            {match.player_b && (
+              <Link 
+                to={getPlayerLink(match.player_b, match.player_b_slug, match.player_b_id)}
+                className={`block hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${
+                  match.player_b_data ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                vs {match.player_b}
+                {match.player_b_data && match.player_b_data.current_rank && (
+                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                    (#{match.player_b_data.current_rank})
+                  </span>
+                )}
+              </Link>
+            )}
           </div>
 
           {match.start_time && !isLive && (
@@ -199,9 +252,11 @@ function MatchCard({ match, isLive }) {
               {isLive ? 'Starting...' : 'Scheduled'}
             </div>
           )}
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            {match.status}
-          </div>
+          {match.status && (
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {match.status}
+            </div>
+          )}
         </div>
       </div>
     </div>
