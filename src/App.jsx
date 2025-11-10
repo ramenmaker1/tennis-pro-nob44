@@ -60,6 +60,7 @@ const AuthenticatedApp = () => {
       <Suspense fallback={SuspenseFallback}>
         <Routes>
           <Route path="/" element={<MainPage />} />
+          <Route path="/player/:playerId" element={<Pages.PlayerDetail />} />
           {Object.entries(Pages).map(([path, Page]) => (
             <Route key={path} path={`/${path}`} element={<Page />} />
           ))}

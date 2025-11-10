@@ -1,29 +1,36 @@
 /**
- * Tennis Data Service - Centralized API for live tennis data
+ * Tennis Data Service - Multi-source tennis data with intelligent fallbacks
  * 
- * Supports multiple data sources:
- * - RapidAPI Tennis Live (free tier available)
- * - API-Sports Tennis
- * - Custom backend endpoint
+ * Data Sources (Priority Order):
+ * 1. RapidAPI Tennis (Primary - requires key)
+ * 2. Sofascore Public API (Free - no key required)
+ * 3. TheSportsDB (Free - limited data)
+ * 4. Mock Data (Always available)
  * 
- * Environment variables needed:
- * - VITE_TENNIS_API_KEY
+ * Features:
+ * - Automatic fallback on API failures
+ * - Request conservation (20/day limit)
+ * - Aggressive caching
+ * - Unified data normalization
+ * 
+ * Environment variables:
+ * - VITE_TENNIS_API_KEY (optional - enables RapidAPI)
  * - VITE_TENNIS_API_HOST (optional)
- * - VITE_TENNIS_API_PROVIDER (rapidapi|apisports|custom)
- * 
- * REQUEST CONSERVATION:
- * - Live matches: 5 min cache (only 12 calls/hour, 288/day max)
- * - Rankings: 6 hour cache (only 4 calls/day per tour)
- * - Tournaments: 24 hour cache (only 1 call/day per tour)
- * - Player search: LocalStorage cache
+ * - VITE_TENNIS_API_PROVIDER (optional)
  */
 
 const API_KEY = import.meta.env.VITE_TENNIS_API_KEY;
-const API_HOST = import.meta.env.VITE_TENNIS_API_HOST || 'ultimate-tennis1.p.rapidapi.com';
+const API_HOST = import.meta.env.VITE_TENNIS_API_HOST || 'tennis-api-atp-wta-itf.p.rapidapi.com';
 const API_PROVIDER = import.meta.env.VITE_TENNIS_API_PROVIDER || 'rapidapi';
 
 // Mock data fallback when no API key is configured
 const MOCK_MODE = !API_KEY;
+
+// Available free data sources (no API key required)
+const FREE_SOURCES = {
+  SOFASCORE: 'https://api.sofascore.com/api/v1',
+  SPORTSDB: 'https://www.thesportsdb.com/api/v1/json/3',
+};
 
 // Request counter and limits
 const REQUEST_STATS = {
@@ -80,151 +87,329 @@ function incrementRequestCount() {
 }
 
 /**
- * Fetches data from the configured tennis API
+ * Multi-source fetch with automatic fallback
+ * Tries sources in order: RapidAPI → Sofascore → TheSportsDB → Mock
  */
-async function fetchTennisAPI(endpoint, options = {}) {
-  if (MOCK_MODE) {
-    console.warn('Tennis API: Running in MOCK mode (no API key configured)');
-    return getMockData(endpoint);
-  }
-
-  // Check if we should make the request
-  if (!checkRequestLimit() && !options.forceFetch) {
-    console.log('⚠️ Skipping API call to conserve quota. Using cached/mock data.');
-    return getMockData(endpoint);
-  }
-
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-  // Configure based on provider
-  if (API_PROVIDER === 'rapidapi') {
-    headers['X-RapidAPI-Key'] = API_KEY;
-    headers['X-RapidAPI-Host'] = API_HOST;
-  } else if (API_PROVIDER === 'apisports') {
-    headers['x-apisports-key'] = API_KEY;
-  }
-
-  const url = getAPIUrl(endpoint);
-
-  try {
-    const response = await fetch(url, {
-      method: options.method || 'GET',
-      headers,
-      ...options,
+async function fetchWithFallback(endpoint, dataType) {
+  const sources = [];
+  
+  // Add RapidAPI if available and quota allows
+  if (!MOCK_MODE && checkRequestLimit()) {
+    sources.push({
+      name: 'RapidAPI',
+      fetch: () => fetchRapidAPI(endpoint),
     });
-
-    if (!response.ok) {
-      throw new Error(`Tennis API error: ${response.status} ${response.statusText}`);
-    }
-
-    incrementRequestCount();
-    return await response.json();
-  } catch (error) {
-    console.error('Tennis API fetch error:', error);
-    // Fallback to mock data on error
-    return getMockData(endpoint);
   }
+  
+  // Always try free sources
+  sources.push(
+    {
+      name: 'Sofascore',
+      fetch: () => fetchSofascore(dataType),
+    },
+    {
+      name: 'TheSportsDB',
+      fetch: () => fetchSportsDB(dataType),
+    }
+  );
+  
+  // Try each source until one succeeds
+  for (const source of sources) {
+    try {
+      console.log(`🎾 Trying ${source.name} for ${dataType}...`);
+      const data = await source.fetch();
+      if (data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0)) {
+        console.log(`✅ ${source.name} returned data for ${dataType}`);
+        if (source.name === 'RapidAPI') incrementRequestCount();
+        return data;
+      }
+    } catch (error) {
+      console.warn(`❌ ${source.name} failed:`, error.message);
+      continue;
+    }
+  }
+  
+  // All sources failed, return mock data
+  console.log(`⚠️ All sources failed for ${dataType}, using mock data`);
+  return getMockData(endpoint);
 }
 
-function getAPIUrl(endpoint) {
-  if (API_PROVIDER === 'rapidapi') {
-    return `https://${API_HOST}${endpoint}`;
-  } else if (API_PROVIDER === 'apisports') {
-    return `https://v1.tennis.api-sports.io${endpoint}`;
-  } else {
-    // Custom backend
-    return `${import.meta.env.VITE_TENNIS_API_BASE_URL}${endpoint}`;
+/**
+ * Fetch from RapidAPI (requires API key)
+ */
+async function fetchRapidAPI(endpoint) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-RapidAPI-Key': API_KEY,
+    'X-RapidAPI-Host': API_HOST,
+  };
+
+  const url = `https://${API_HOST}${endpoint}`;
+
+  const response = await fetch(url, { headers });
+  
+  if (!response.ok) {
+    throw new Error(`RapidAPI error: ${response.status}`);
   }
+
+  return await response.json();
+}
+
+/**
+ * Fetch from Sofascore public API (free, no key required)
+ */
+async function fetchSofascore(dataType) {
+  let url;
+  
+  switch (dataType) {
+    case 'live':
+      url = `${FREE_SOURCES.SOFASCORE}/sport/tennis/events/live`;
+      break;
+    case 'scheduled':
+      url = `${FREE_SOURCES.SOFASCORE}/sport/tennis/scheduled-events/${getTodayDate()}`;
+      break;
+    case 'tournaments':
+      url = `${FREE_SOURCES.SOFASCORE}/sport/tennis/tournaments`;
+      break;
+    default:
+      throw new Error(`Unsupported data type: ${dataType}`);
+  }
+
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`Sofascore error: ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Fetch from TheSportsDB (free, no key required)
+ */
+async function fetchSportsDB(dataType) {
+  let url;
+  
+  switch (dataType) {
+    case 'live':
+      // TheSportsDB doesn't have live scores in free tier
+      throw new Error('TheSportsDB does not support live matches');
+    case 'scheduled':
+      url = `${FREE_SOURCES.SPORTSDB}/eventsseason.php?id=4370&s=2025`;
+      break;
+    default:
+      throw new Error(`Unsupported data type: ${dataType}`);
+  }
+
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`TheSportsDB error: ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Helper: Get today's date in YYYY-MM-DD format
+ */
+function getTodayDate() {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
 }
 
 /**
  * Get live matches currently in progress
  */
 export async function getLiveMatches() {
-  // This API uses /tennis/v2/atp/live for live matches
-  const data = await fetchTennisAPI('/tennis/v2/atp/live');
-  return normalizeMatches(data);
+  const data = await fetchWithFallback('/tennis/v2/atp/live', 'live');
+  return normalizeMatches(data, 'sofascore');
+}
+
+/**
+ * Get upcoming/scheduled matches
+ */
+export async function getUpcomingMatches() {
+  const data = await fetchWithFallback('/tennis/v2/atp/schedule', 'scheduled');
+  return normalizeMatches(data, 'sofascore');
+}
+
+/**
+ * Get matches by date
+ */
+export async function getMatchesByDate(date = getTodayDate()) {
+  const data = await fetchWithFallback(`/tennis/v2/matches/${date}`, 'scheduled');
+  return normalizeMatches(data, 'sofascore');
 }
 
 /**
  * Get ATP Top 100 rankings
  */
 export async function getATPRankings(limit = 100) {
-  const data = await fetchTennisAPI('/tennis/v2/atp/rankings');
-  return normalizeRankings(data, 'ATP');
+  // Rankings are less critical, keep using RapidAPI if available
+  if (!MOCK_MODE && checkRequestLimit()) {
+    try {
+      const data = await fetchRapidAPI('/tennis/v2/atp/rankings');
+      incrementRequestCount();
+      return normalizeRankings(data, 'ATP');
+    } catch (error) {
+      console.warn('RapidAPI rankings failed, using mock data');
+    }
+  }
+  return normalizeRankings(getMockData('/rankings/atp'), 'ATP');
 }
 
 /**
  * Get WTA Top 100 rankings
  */
 export async function getWTARankings(limit = 100) {
-  const data = await fetchTennisAPI('/tennis/v2/wta/rankings');
-  return normalizeRankings(data, 'WTA');
+  if (!MOCK_MODE && checkRequestLimit()) {
+    try {
+      const data = await fetchRapidAPI('/tennis/v2/wta/rankings');
+      incrementRequestCount();
+      return normalizeRankings(data, 'WTA');
+    } catch (error) {
+      console.warn('RapidAPI rankings failed, using mock data');
+    }
+  }
+  return normalizeRankings(getMockData('/rankings/wta'), 'WTA');
 }
 
 /**
  * Get ITF rankings
  */
 export async function getITFRankings(limit = 100) {
-  // Try ITF endpoint, fallback to mock if not available
-  const data = await fetchTennisAPI('/tennis/v2/itf/rankings');
-  return normalizeRankings(data, 'ITF');
+  if (!MOCK_MODE && checkRequestLimit()) {
+    try {
+      const data = await fetchRapidAPI('/tennis/v2/itf/rankings');
+      incrementRequestCount();
+      return normalizeRankings(data, 'ITF');
+    } catch (error) {
+      console.warn('RapidAPI rankings failed, using mock data');
+    }
+  }
+  return normalizeRankings(getMockData('/rankings/itf'), 'ITF');
 }
 
 /**
  * Get upcoming/current tournaments
  */
 export async function getTournaments(options = {}) {
-  const { tour = 'atp' } = options;
-  const endpoint = `/tennis/v2/${tour.toLowerCase()}/tournaments`;
-  const data = await fetchTennisAPI(endpoint);
+  const data = await fetchWithFallback('/tennis/v2/tournaments', 'tournaments');
   return normalizeTournaments(data);
 }
 
 /**
- * Get player details by ID
+ * Get player details by ID or name
  */
-export async function getPlayerDetails(playerId) {
-  const data = await fetchTennisAPI(`/tennis/v2/players/${playerId}`);
-  return normalizePlayer(data);
+export async function getPlayerDetails(playerIdOrName) {
+  if (!MOCK_MODE && checkRequestLimit()) {
+    try {
+      const data = await fetchRapidAPI(`/tennis/v2/players/${playerIdOrName}`);
+      incrementRequestCount();
+      return normalizePlayer(data);
+    } catch (error) {
+      console.warn('Player details fetch failed, using mock data');
+    }
+  }
+  // Return mock player data
+  return getMockPlayerDetails(playerIdOrName);
 }
 
 /**
  * Get match details by ID
  */
 export async function getMatchDetails(matchId) {
-  const data = await fetchTennisAPI(`/tennis/v2/matches/${matchId}`);
-  return normalizeMatch(data);
+  if (!MOCK_MODE && checkRequestLimit()) {
+    try {
+      const data = await fetchRapidAPI(`/tennis/v2/matches/${matchId}`);
+      incrementRequestCount();
+      return normalizeMatch(data);
+    } catch (error) {
+      console.warn('Match details fetch failed, using mock data');
+    }
+  }
+  return getMockMatchDetails(matchId);
 }
 
 /**
  * Search players by name
  */
 export async function searchPlayers(query, tour = 'all') {
-  const data = await fetchTennisAPI(`/tennis/v2/search?search=${encodeURIComponent(query)}`);
-  return normalizeRankings(data);
+  if (!MOCK_MODE && checkRequestLimit()) {
+    try {
+      const data = await fetchRapidAPI(`/tennis/v2/search?search=${encodeURIComponent(query)}`);
+      incrementRequestCount();
+      return normalizeRankings(data);
+    } catch (error) {
+      console.warn('Player search failed');
+    }
+  }
+  // Search in mock rankings
+  const atpMock = generateMockRankings('ATP', 100);
+  const wtaMock = generateMockRankings('WTA', 100);
+  const allPlayers = [...atpMock, ...wtaMock];
+  return allPlayers.filter(p => 
+    p.name.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, 20);
 }
 
 // ============================================================================
 // Data Normalization Functions
 // ============================================================================
 
-function normalizeMatches(data) {
-  // Handle different API response structures
-  const matches = data?.matches || data?.data || data || [];
+function normalizeMatches(data, source = 'rapidapi') {
+  let matches = [];
+  
+  // Handle Sofascore format
+  if (source === 'sofascore' && data?.events) {
+    matches = data.events.map(e => ({
+      id: e.id,
+      tournament_name: e.tournament?.name || e.tournament?.uniqueTournament?.name || 'Unknown',
+      round: e.roundInfo?.name || e.roundInfo?.round || 'R1',
+      surface: e.groundType || 'hard',
+      player_a: e.homeTeam?.name || 'Player 1',
+      player_b: e.awayTeam?.name || 'Player 2',
+      player_a_id: e.homeTeam?.id,
+      player_b_id: e.awayTeam?.id,
+      score: e.homeScore && e.awayScore ? `${e.homeScore?.display || 0} - ${e.awayScore?.display || 0}` : '',
+      status: e.status?.description || e.status?.type || 'scheduled',
+      start_time: e.startTimestamp ? new Date(e.startTimestamp * 1000).toISOString() : null,
+      is_live: e.status?.type === 'inprogress',
+    }));
+  } 
+  // Handle RapidAPI format
+  else if (data?.matches || data?.data) {
+    const rawMatches = data?.matches || data?.data || [];
+    matches = rawMatches.map(m => ({
+      id: m.id || m.match_id,
+      tournament_name: m.tournament?.name || m.tournament_name || 'Unknown',
+      round: m.round || 'R1',
+      surface: m.surface || 'hard',
+      player_a: normalizePlayerName(m.player1 || m.home_player || m.player_a),
+      player_b: normalizePlayerName(m.player2 || m.away_player || m.player_b),
+      player_a_id: m.player1_id || m.home_player_id,
+      player_b_id: m.player2_id || m.away_player_id,
+      score: m.score || m.current_score || '',
+      status: m.status || 'scheduled',
+      start_time: m.start_time || m.scheduled,
+      is_live: m.status === 'live' || m.status === 'inprogress',
+    }));
+  }
   
   return matches.map(m => ({
-    id: m.id || m.match_id,
-    tournament: m.tournament?.name || m.tournament_name || 'Unknown',
-    round: m.round || 'R1',
-    surface: m.surface || 'hard',
-    player_a: normalizePlayerName(m.player1 || m.home_player || m.player_a),
-    player_b: normalizePlayerName(m.player2 || m.away_player || m.player_b),
-    score: m.score || m.current_score || '',
-    status: m.status || 'live',
-    start_time: m.start_time || m.scheduled,
+    id: m.id,
+    tournament: m.tournament_name,
+    round: m.round,
+    surface: m.surface,
+    player_a: m.player_a,
+    player_b: m.player_b,
+    player_a_id: m.player_a_id,
+    player_b_id: m.player_b_id,
+    score: m.score,
+    status: m.status,
+    start_time: m.start_time,
+    is_live: m.is_live,
   }));
 }
 
@@ -298,30 +483,15 @@ function normalizePlayerName(player) {
 function getMockData(endpoint) {
   console.log('Returning mock data for:', endpoint);
   
-  if (endpoint.includes('/live-matches')) {
+  if (endpoint.includes('/live') || endpoint.includes('live-matches')) {
     return {
-      matches: [
-        {
-          id: 'mock-1',
-          tournament_name: 'ATP Paris Masters',
-          round: 'Quarterfinals',
-          surface: 'hard',
-          player_a: 'Novak Djokovic',
-          player_b: 'Holger Rune',
-          score: '6-4, 3-2',
-          status: 'live',
-        },
-        {
-          id: 'mock-2',
-          tournament_name: 'ATP Paris Masters',
-          round: 'Quarterfinals',
-          surface: 'hard',
-          player_a: 'Carlos Alcaraz',
-          player_b: 'Jannik Sinner',
-          score: '7-6, 2-1',
-          status: 'live',
-        },
-      ],
+      matches: generateMockLiveMatches(),
+    };
+  }
+  
+  if (endpoint.includes('/schedule') || endpoint.includes('scheduled')) {
+    return {
+      matches: generateMockUpcomingMatches(),
     };
   }
   
@@ -345,17 +515,202 @@ function getMockData(endpoint) {
   
   if (endpoint.includes('/tournaments')) {
     return {
-      tournaments: [
-        { name: 'Australian Open', location: 'Melbourne', surface: 'hard', tour: 'ATP' },
-        { name: 'French Open', location: 'Paris', surface: 'clay', tour: 'ATP' },
-        { name: 'Wimbledon', location: 'London', surface: 'grass', tour: 'ATP' },
-        { name: 'US Open', location: 'New York', surface: 'hard', tour: 'ATP' },
-        { name: 'ATP Paris Masters', location: 'Paris', surface: 'hard', tour: 'ATP' },
-      ],
+      tournaments: generateMockTournaments(),
     };
   }
   
   return { data: [] };
+}
+
+function generateMockLiveMatches() {
+  return [
+    {
+      id: 'mock-live-1',
+      tournament_name: 'ATP Paris Masters',
+      round: 'Quarterfinals',
+      surface: 'hard',
+      player_a: 'Novak Djokovic',
+      player_b: 'Holger Rune',
+      player_a_id: 'djokovic',
+      player_b_id: 'rune',
+      score: '6-4, 3-2',
+      status: 'live',
+      is_live: true,
+    },
+    {
+      id: 'mock-live-2',
+      tournament_name: 'ATP Paris Masters',
+      round: 'Quarterfinals',
+      surface: 'hard',
+      player_a: 'Carlos Alcaraz',
+      player_b: 'Jannik Sinner',
+      player_a_id: 'alcaraz',
+      player_b_id: 'sinner',
+      score: '7-6, 2-1',
+      status: 'live',
+      is_live: true,
+    },
+    {
+      id: 'mock-live-3',
+      tournament_name: 'WTA Finals',
+      round: 'Semifinals',
+      surface: 'hard',
+      player_a: 'Iga Swiatek',
+      player_b: 'Aryna Sabalenka',
+      player_a_id: 'swiatek',
+      player_b_id: 'sabalenka',
+      score: '4-6, 6-3, 1-0',
+      status: 'live',
+      is_live: true,
+    },
+  ];
+}
+
+function generateMockUpcomingMatches() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString();
+  
+  return [
+    {
+      id: 'mock-upcoming-1',
+      tournament_name: 'ATP Paris Masters',
+      round: 'Semifinals',
+      surface: 'hard',
+      player_a: 'Daniil Medvedev',
+      player_b: 'Stefanos Tsitsipas',
+      player_a_id: 'medvedev',
+      player_b_id: 'tsitsipas',
+      score: '',
+      status: 'scheduled',
+      start_time: tomorrowStr,
+      is_live: false,
+    },
+    {
+      id: 'mock-upcoming-2',
+      tournament_name: 'ATP Paris Masters',
+      round: 'Semifinals',
+      surface: 'hard',
+      player_a: 'Andrey Rublev',
+      player_b: 'Taylor Fritz',
+      player_a_id: 'rublev',
+      player_b_id: 'fritz',
+      score: '',
+      status: 'scheduled',
+      start_time: tomorrowStr,
+      is_live: false,
+    },
+    {
+      id: 'mock-upcoming-3',
+      tournament_name: 'WTA Finals',
+      round: 'Final',
+      surface: 'hard',
+      player_a: 'Coco Gauff',
+      player_b: 'Elena Rybakina',
+      player_a_id: 'gauff',
+      player_b_id: 'rybakina',
+      score: '',
+      status: 'scheduled',
+      start_time: tomorrowStr,
+      is_live: false,
+    },
+    {
+      id: 'mock-upcoming-4',
+      tournament_name: 'ATP Next Gen Finals',
+      round: 'Round Robin',
+      surface: 'hard',
+      player_a: 'Arthur Fils',
+      player_b: 'Ben Shelton',
+      player_a_id: 'fils',
+      player_b_id: 'shelton',
+      score: '',
+      status: 'scheduled',
+      start_time: tomorrowStr,
+      is_live: false,
+    },
+  ];
+}
+
+function generateMockTournaments() {
+  return [
+    { name: 'Australian Open', location: 'Melbourne', surface: 'hard', tour: 'Grand Slam', category: 'Grand Slam' },
+    { name: 'French Open', location: 'Paris', surface: 'clay', tour: 'Grand Slam', category: 'Grand Slam' },
+    { name: 'Wimbledon', location: 'London', surface: 'grass', tour: 'Grand Slam', category: 'Grand Slam' },
+    { name: 'US Open', location: 'New York', surface: 'hard', tour: 'Grand Slam', category: 'Grand Slam' },
+    { name: 'ATP Paris Masters', location: 'Paris', surface: 'hard', tour: 'ATP', category: 'Masters 1000' },
+    { name: 'ATP Finals', location: 'Turin', surface: 'hard', tour: 'ATP', category: 'Finals' },
+    { name: 'WTA Finals', location: 'Cancun', surface: 'hard', tour: 'WTA', category: 'Finals' },
+  ];
+}
+
+function getMockPlayerDetails(playerIdOrName) {
+  const mockPlayers = {
+    'djokovic': {
+      id: 'djokovic',
+      name: 'Novak Djokovic',
+      country: 'SRB',
+      age: 37,
+      height: 188,
+      weight: 80,
+      hand: 'Right',
+      backhand: 'Two-handed',
+      turned_pro: 2003,
+      ranking: { current: 1, highest: 1 },
+      stats: {
+        titles: 98,
+        win_rate: 0.834,
+        hard_win_rate: 0.844,
+        clay_win_rate: 0.798,
+        grass_win_rate: 0.871,
+      },
+    },
+    'alcaraz': {
+      id: 'alcaraz',
+      name: 'Carlos Alcaraz',
+      country: 'ESP',
+      age: 21,
+      height: 183,
+      weight: 80,
+      hand: 'Right',
+      backhand: 'Two-handed',
+      turned_pro: 2018,
+      ranking: { current: 2, highest: 1 },
+      stats: {
+        titles: 15,
+        win_rate: 0.768,
+        hard_win_rate: 0.745,
+        clay_win_rate: 0.802,
+        grass_win_rate: 0.756,
+      },
+    },
+  };
+  
+  // Return specific player or default
+  return mockPlayers[playerIdOrName?.toLowerCase()] || {
+    id: playerIdOrName,
+    name: playerIdOrName || 'Unknown Player',
+    country: 'Unknown',
+    age: 25,
+    ranking: { current: 50, highest: 30 },
+    stats: {},
+  };
+}
+
+function getMockMatchDetails(matchId) {
+  return {
+    id: matchId,
+    tournament: 'ATP Paris Masters',
+    round: 'Quarterfinals',
+    surface: 'hard',
+    player_a: 'Novak Djokovic',
+    player_b: 'Holger Rune',
+    score: '6-4, 3-2',
+    status: 'live',
+    sets: [
+      { player_a: 6, player_b: 4 },
+      { player_a: 3, player_b: 2 },
+    ],
+  };
 }
 
 function generateMockRankings(tour, count) {
@@ -385,6 +740,8 @@ function generateMockRankings(tour, count) {
 // Export all functions
 export default {
   getLiveMatches,
+  getUpcomingMatches,
+  getMatchesByDate,
   getATPRankings,
   getWTARankings,
   getITFRankings,

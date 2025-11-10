@@ -7,6 +7,7 @@ const TopPlayers = lazy(() => import('./pages/TopPlayers'));
 const Tournaments = lazy(() => import('./pages/Tournaments'));
 const LivePlayers = lazy(() => import('./pages/LivePlayers'));
 const DataAnalysis = lazy(() => import('./pages/DataAnalysis'));
+const PlayerDetail = lazy(() => import('./pages/PlayerDetail'));
 const Players = lazy(() => import('./pages/Players'));
 const MatchAnalysis = lazy(() => import('./pages/MatchAnalysis'));
 const Predictions = lazy(() => import('./pages/Predictions'));
@@ -25,6 +26,7 @@ export const PAGES = {
   Tournaments: Tournaments,
   LivePlayers: LivePlayers,
   DataAnalysis: DataAnalysis,
+  PlayerDetail: PlayerDetail,
   Players: Players,
   MatchAnalysis: MatchAnalysis,
   Predictions: Predictions,

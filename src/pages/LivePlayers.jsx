@@ -1,5 +1,6 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tantml:react-query';
 import { getLiveMatches } from '@/services/tennisDataService';
 import { Activity } from 'lucide-react';
 
@@ -24,15 +25,19 @@ export default function LivePlayers() {
     
     matches.forEach((m) => {
       if (m.player_a) {
+        const playerId = m.player_a_id || m.player_a.toLowerCase().replace(/\s+/g, '-');
         playerSet.set(m.player_a, {
           name: m.player_a,
+          id: playerId,
           match: m,
           opponent: m.player_b,
         });
       }
       if (m.player_b) {
+        const playerId = m.player_b_id || m.player_b.toLowerCase().replace(/\s+/g, '-');
         playerSet.set(m.player_b, {
           name: m.player_b,
+          id: playerId,
           match: m,
           opponent: m.player_a,
         });
@@ -65,7 +70,12 @@ export default function LivePlayers() {
             className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between mb-2">
-              <div className="font-semibold text-lg dark:text-slate-100">{p.name}</div>
+              <Link 
+                to={`/player/${p.id}`}
+                className="font-semibold text-lg dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              >
+                {p.name}
+              </Link>
               <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs rounded">
                 Live
               </span>
