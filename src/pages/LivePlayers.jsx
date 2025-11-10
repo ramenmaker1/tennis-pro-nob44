@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tantml:react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getLiveMatches } from '@/services/tennisDataService';
 import { Activity } from 'lucide-react';
 

@@ -11,6 +11,8 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: 'dist',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -22,5 +24,13 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000,
+  },
+  server: {
+    port: 5173,
+    strictPort: false,
+  },
+  preview: {
+    port: 4173,
+    strictPort: false,
   },
 });
