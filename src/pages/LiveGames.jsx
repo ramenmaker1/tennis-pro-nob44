@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLiveMatches, getUpcomingMatches } from '@/services/tennisDataService';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Calendar, Radio } from 'lucide-react';
+import { getCurrentClient } from '@/data/dataSourceStore';
+import { enrichMatchesWithLocalPlayers } from '@/utils/playerMatcher';
 
 export default function LiveGames() {
   const [activeTab, setActiveTab] = useState('live');
 
-  const { data: liveMatches, isLoading: loadingLive } = useQuery(
+  // Fetch local players for matching
+  const { data: dbPlayers = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => getCurrentClient().players.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: rawLiveMatches, isLoading: loadingLive } = useQuery(
     ['liveMatches'],
     getLiveMatches,
     {
@@ -20,7 +29,7 @@ export default function LiveGames() {
     }
   );
 
-  const { data: upcomingMatches, isLoading: loadingUpcoming } = useQuery(
+  const { data: rawUpcomingMatches, isLoading: loadingUpcoming } = useQuery(
     ['upcomingMatches'],
     getUpcomingMatches,
     {
@@ -30,6 +39,15 @@ export default function LiveGames() {
       refetchOnMount: false,
     }
   );
+
+  // Enrich matches with local player data
+  const liveMatches = useMemo(() => {
+    return enrichMatchesWithLocalPlayers(rawLiveMatches, dbPlayers);
+  }, [rawLiveMatches, dbPlayers]);
+
+  const upcomingMatches = useMemo(() => {
+    return enrichMatchesWithLocalPlayers(rawUpcomingMatches, dbPlayers);
+  }, [rawUpcomingMatches, dbPlayers]);
 
   return (
     <div className="p-6">
@@ -104,10 +122,15 @@ export default function LiveGames() {
 }
 
 function MatchCard({ match, isLive }) {
-  const getPlayerLink = (playerName, playerId) => {
-    // Use player ID if available, otherwise use name as slug
-    const slug = playerId || playerName.toLowerCase().replace(/\s+/g, '-');
-    return `/player/${slug}`;
+  const getPlayerLink = (playerName, playerSlug, playerId) => {
+    // Use slug from matched player, fall back to ID or name-based slug
+    if (playerSlug) {
+      return `/player/${playerSlug}`;
+    }
+    if (playerId) {
+      return `/player/${playerId}`;
+    }
+    return `/player/${playerName.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
   return (
@@ -123,20 +146,39 @@ function MatchCard({ match, isLive }) {
                 ● LIVE
               </span>
             )}
+            {match.player_a_data && (
+              <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-full" title="Player in your database">
+                ✓
+              </span>
+            )}
           </div>
           
           <div className="space-y-1">
             <Link 
-              to={getPlayerLink(match.player_a, match.player_a_id)}
-              className="block font-medium dark:text-slate-100 text-lg hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              to={getPlayerLink(match.player_a, match.player_a_slug, match.player_a_id)}
+              className={`block font-medium text-lg hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${
+                match.player_a_data ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'
+              }`}
             >
               {match.player_a}
+              {match.player_a_data && match.player_a_data.current_rank && (
+                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                  (#{match.player_a_data.current_rank})
+                </span>
+              )}
             </Link>
             <Link 
-              to={getPlayerLink(match.player_b, match.player_b_id)}
-              className="block text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              to={getPlayerLink(match.player_b, match.player_b_slug, match.player_b_id)}
+              className={`block hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${
+                match.player_b_data ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300'
+              }`}
             >
               vs {match.player_b}
+              {match.player_b_data && match.player_b_data.current_rank && (
+                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                  (#{match.player_b_data.current_rank})
+                </span>
+              )}
             </Link>
           </div>
 
