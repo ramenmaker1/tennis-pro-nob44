@@ -132,6 +132,9 @@ export default function Players() {
               <SelectItem value="grass">Grass Court</SelectItem>
             </SelectContent>
           </Select>
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            Showing {filteredPlayers.length} of {players.length} players
+          </div>
         </div>
 
         <div className="space-x-2">
@@ -147,6 +150,22 @@ export default function Players() {
           )}
         </div>
       </div>
+
+      {/* Filter warning */}
+      {surfaceFilter !== 'all' && filteredPlayers.length < players.length && (
+        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="text-sm text-yellow-800 dark:text-yellow-200">
+            <strong>Surface filter active:</strong> Only showing players with {surfaceFilter} court stats. 
+            {players.length - filteredPlayers.length} players hidden because they don't have {surfaceFilter}_court_win_pct data.
+            <button 
+              onClick={() => setSurfaceFilter('all')} 
+              className="ml-2 underline hover:no-underline"
+            >
+              Clear filter
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Player grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
