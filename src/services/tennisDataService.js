@@ -525,12 +525,17 @@ function normalizeMatches(data, source = 'rapidapi') {
   return matches.map(m => ({
     id: m.id,
     tournament: m.tournament_name,
+    tournament_name: m.tournament_name,
     round: m.round,
     surface: m.surface,
     player_a: m.player_a,
     player_b: m.player_b,
+    player1_name: m.player_a, // For prediction service
+    player2_name: m.player_b, // For prediction service
     player_a_id: m.player_a_id,
     player_b_id: m.player_b_id,
+    player1_id: m.player_a_id, // For prediction service
+    player2_id: m.player_b_id, // For prediction service
     score: m.score,
     status: m.status,
     start_time: m.start_time,
