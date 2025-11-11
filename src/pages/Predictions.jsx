@@ -186,6 +186,11 @@ export default function Predictions() {
                   {dataSource === 'live' 
                     ? `${livePredictions.length} predictions generated from ${liveMatches.length} matches`
                     : `${predictions.length} stored predictions`}
+                  {dataSource === 'live' && livePredictions.some(p => !p.has_player_data) && (
+                    <span className="ml-2 text-amber-600">
+                      • Some predictions use estimated player data
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -201,6 +206,24 @@ export default function Predictions() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Info banner for estimated predictions */}
+      {dataSource === 'live' && livePredictions.some(p => !p.has_player_data) && (
+        <Card className="shadow-sm bg-amber-50 border-amber-200">
+          <CardContent className="p-3">
+            <div className="flex items-start gap-2 text-sm">
+              <span className="text-lg">💡</span>
+              <div>
+                <div className="font-medium text-amber-900">Predictions with Estimated Data</div>
+                <div className="text-amber-700 mt-1">
+                  Some players aren't in your database yet. Predictions marked with "📊 Estimated" use default rankings and stats. 
+                  For more accurate predictions, import these players from the Players page or consider these predictions as lower confidence.
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="shadow-md">
         <CardHeader>
@@ -328,6 +351,11 @@ export default function Predictions() {
                           >
                             {prediction.confidence_level} Confidence
                           </Badge>
+                          {!prediction.has_player_data && (
+                            <Badge variant="secondary" className="text-xs">
+                              📊 Estimated
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </CardHeader>

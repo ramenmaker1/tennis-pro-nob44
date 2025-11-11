@@ -20,6 +20,55 @@ import {
 } from './advancedPredictions.js';
 
 /**
+ * Normalize player name for comparison
+ * @param {string} name - Player name
+ * @returns {string} Normalized name
+ */
+function normalizePlayerName(name) {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z\s]/g, '') // Remove special characters
+    .replace(/\s+/g, ' '); // Normalize spaces
+}
+
+/**
+ * Create placeholder player object for unknown players
+ * @param {string} name - Player name
+ * @param {string|number} id - Player ID
+ * @returns {Object} Placeholder player object
+ */
+function createPlaceholderPlayer(name, id) {
+  return {
+    id: id || `placeholder-${Date.now()}-${Math.random()}`,
+    name: name,
+    display_name: name,
+    ranking: 500, // Default mid-range ranking
+    country: 'Unknown',
+    age: 25,
+    height: 180,
+    weight: 75,
+    turned_pro: new Date().getFullYear() - 5,
+    hand: 'right',
+    backhand: 'two-handed',
+    surface_stats: {
+      hard: { wins: 20, losses: 20, win_rate: 50 },
+      clay: { wins: 15, losses: 15, win_rate: 50 },
+      grass: { wins: 10, losses: 10, win_rate: 50 },
+    },
+    career_stats: {
+      wins: 100,
+      losses: 100,
+      titles: 1,
+      win_rate: 50,
+    },
+    recent_form: 'WWLWL',
+    isPlaceholder: true, // Flag to identify placeholder players
+  };
+}
+
+/**
  * Calculate win probability based on multiple factors
  * @param {Object} player1 - First player data
  * @param {Object} player2 - Second player data
@@ -170,24 +219,35 @@ function calculateFormScore(form) {
  * @returns {Array} Predictions for all matches
  */
 export function predictMatches(matches, players, modelType = 'ensemble') {
-  if (!matches || !players) return [];
+  if (!matches) return [];
   
   return matches.map(match => {
-    const player1 = players.find(p => 
+    // Try to find players in database
+    let player1 = players?.find(p => 
       p.id === match.player1_id || 
       p.name === match.player1_name ||
-      p.display_name === match.player1_name
+      p.display_name === match.player1_name ||
+      normalizePlayerName(p.name) === normalizePlayerName(match.player1_name) ||
+      normalizePlayerName(p.display_name) === normalizePlayerName(match.player1_name)
     );
     
-    const player2 = players.find(p => 
+    let player2 = players?.find(p => 
       p.id === match.player2_id || 
       p.name === match.player2_name ||
-      p.display_name === match.player2_name
+      p.display_name === match.player2_name ||
+      normalizePlayerName(p.name) === normalizePlayerName(match.player2_name) ||
+      normalizePlayerName(p.display_name) === normalizePlayerName(match.player2_name)
     );
     
-    if (!player1 || !player2) {
-      console.warn('Players not found for match:', match);
-      return null;
+    // Create placeholder player objects if not found in database
+    if (!player1) {
+      console.log(`📝 Creating placeholder for ${match.player1_name || match.player_a}`);
+      player1 = createPlaceholderPlayer(match.player1_name || match.player_a, match.player1_id || match.player_a_id);
+    }
+    
+    if (!player2) {
+      console.log(`📝 Creating placeholder for ${match.player2_name || match.player_b}`);
+      player2 = createPlaceholderPlayer(match.player2_name || match.player_b, match.player2_id || match.player_b_id);
     }
     
     // Select prediction model
@@ -227,6 +287,9 @@ export function predictMatches(matches, players, modelType = 'ensemble') {
       ...prediction,
       created_at: new Date().toISOString(),
       tournament_importance: getTournamentImportance(match.tournament_name || match.tournament),
+      has_player_data: !player1.isPlaceholder && !player2.isPlaceholder,
+      player1_in_database: !player1.isPlaceholder,
+      player2_in_database: !player2.isPlaceholder,
     };
   }).filter(Boolean);
 }
