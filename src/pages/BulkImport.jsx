@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +12,10 @@ import ImportPreview from '../components/admin/ImportPreview';
 import { parseCSV, validatePlayerImportRow, generateCSVTemplate } from '../utils/csvParser.js';
 import { generatePlayerAliases, createPlayerSlug } from '../utils/aliasGenerator.js';
 import { toast } from 'sonner';
+import { createPageUrl } from '@/utils';
 
 export default function BulkImport() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [csvFile, setCsvFile] = useState(null);
   const [preview, setPreview] = useState([]);
@@ -123,7 +126,9 @@ export default function BulkImport() {
     queryClient.invalidateQueries({ queryKey: ['players'] });
 
     if (success > 0) {
-      toast.success(`Successfully imported ${success} players`);
+      toast.success(`Successfully imported ${success} players`, {
+        description: 'Players will appear after navigating to the Players page',
+      });
     }
     if (errors > 0) {
       toast.error(`${errors} errors occurred during import`);
@@ -321,7 +326,7 @@ Rafael,Nadal,1986,ESP,2,72.3`}
               Import Another File
             </Button>
             <Button
-              onClick={() => (window.location.href = '/players')}
+              onClick={() => navigate(createPageUrl('Players'))}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
               View Players

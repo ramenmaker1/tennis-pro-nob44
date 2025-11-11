@@ -222,8 +222,20 @@ function getTodayDate() {
  * Get live matches currently in progress
  */
 export async function getLiveMatches() {
+  console.log('🎾 getLiveMatches() called');
+  console.log('  API_KEY configured:', !!API_KEY);
+  console.log('  MOCK_MODE:', MOCK_MODE);
+  console.log('  Daily requests:', `${REQUEST_STATS.today}/${REQUEST_STATS.dailyLimit}`);
+  
   const data = await fetchWithFallback('/tennis/v2/atp/live', 'live');
-  return normalizeMatches(data, 'sofascore');
+  const normalized = normalizeMatches(data, 'sofascore');
+  
+  console.log('  Matches returned:', normalized.length);
+  if (normalized.length > 0) {
+    console.log('  First match:', normalized[0]);
+  }
+  
+  return normalized;
 }
 
 /**

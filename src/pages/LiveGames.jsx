@@ -80,7 +80,12 @@ export default function LiveGames() {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4 dark:text-slate-100">Tennis Matches</h2>
+      <div className="mb-4">
+        <h2 className="text-2xl font-semibold dark:text-slate-100">Tennis Matches</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Live data from Sofascore API • Refreshes every 5 minutes
+        </p>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
