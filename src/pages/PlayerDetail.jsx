@@ -9,14 +9,12 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 export default function PlayerDetail() {
   const { playerId } = useParams();
   
-  const { data: player, isLoading, error } = useQuery(
-    ['playerDetails', playerId],
-    () => getPlayerDetails(playerId),
-    {
-      staleTime: 1000 * 60 * 60, // 1 hour
-      cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-    }
-  );
+  const { data: player, isLoading, error } = useQuery({
+    queryKey: ['playerDetails', playerId],
+    queryFn: () => getPlayerDetails(playerId),
+    staleTime: 1000 * 60 * 60, // 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
 
   if (isLoading) {
     return (

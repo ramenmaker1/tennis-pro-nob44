@@ -27,18 +27,16 @@ export default function LivePlayers() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: rawMatches, error: matchesError } = useQuery(
-    ['liveMatchesForPlayers'],
-    getLiveMatches,
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 30, // 30 minutes
-      refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      retry: 1,
-    }
-  );
+  const { data: rawMatches, error: matchesError } = useQuery({
+    queryKey: ['liveMatchesForPlayers'],
+    queryFn: getLiveMatches,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
+  });
 
   // Enrich matches with local player data - with null checks
   const matches = useMemo(() => {

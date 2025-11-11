@@ -30,30 +30,26 @@ export default function LiveGames() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: rawLiveMatches, isLoading: loadingLive, error: liveError } = useQuery(
-    ['liveMatches'],
-    getLiveMatches,
-    {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 30, // 30 minutes
-      refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      retry: 1,
-    }
-  );
+  const { data: rawLiveMatches, isLoading: loadingLive, error: liveError } = useQuery({
+    queryKey: ['liveMatches'],
+    queryFn: getLiveMatches,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
+  });
 
-  const { data: rawUpcomingMatches, isLoading: loadingUpcoming, error: upcomingError } = useQuery(
-    ['upcomingMatches'],
-    getUpcomingMatches,
-    {
-      staleTime: 1000 * 60 * 30, // 30 minutes
-      cacheTime: 1000 * 60 * 60, // 1 hour
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      retry: 1,
-    }
-  );
+  const { data: rawUpcomingMatches, isLoading: loadingUpcoming, error: upcomingError } = useQuery({
+    queryKey: ['upcomingMatches'],
+    queryFn: getUpcomingMatches,
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
+  });
 
   // Enrich matches with local player data - with null checks
   const liveMatches = useMemo(() => {

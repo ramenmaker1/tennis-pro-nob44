@@ -3,13 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
 export default function DataAnalysis() {
-  const { data: predictions = [], isLoading } = useQuery(['predictionsSample'], async () => {
-    try {
-      const res = await base44.entities.Prediction.list({ limit: 50 });
-      return res?.data ?? res ?? [];
-    } catch (err) {
-      return [];
-    }
+  const { data: predictions = [], isLoading } = useQuery({
+    queryKey: ['predictionsSample'],
+    queryFn: async () => {
+      try {
+        const res = await base44.entities.Prediction.list({ limit: 50 });
+        return res?.data ?? res ?? [];
+      } catch (err) {
+        return [];
+      }
+    },
   });
 
   return (

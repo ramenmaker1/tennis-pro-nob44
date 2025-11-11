@@ -6,16 +6,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 export default function TopPlayers() {
   const [tour, setTour] = useState('ATP');
 
-  const { data: players, isLoading } = useQuery(
-    ['rankings', tour],
-    () => (tour === 'ATP' ? getATPRankings(100) : getWTARankings(100)),
-    {
-      staleTime: 1000 * 60 * 60 * 6, // 6 hours - rankings don't change often
-      cacheTime: 1000 * 60 * 60 * 24, // 24 hours - keep in cache for a full day
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  );
+  const { data: players, isLoading } = useQuery({
+    queryKey: ['rankings', tour],
+    queryFn: () => (tour === 'ATP' ? getATPRankings(100) : getWTARankings(100)),
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours - rankings don't change often
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours - keep in cache for a full day
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
   if (isLoading) return <div className="p-6">Loading rankings...</div>;
 

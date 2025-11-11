@@ -7,16 +7,14 @@ import { Calendar, MapPin, Trophy } from 'lucide-react';
 export default function Tournaments() {
   const [tourFilter, setTourFilter] = useState('all');
 
-  const { data: tournaments = [], isLoading } = useQuery(
-    ['tournaments', tourFilter],
-    () => getTournaments({ tour: tourFilter }),
-    {
-      staleTime: 1000 * 60 * 60 * 24, // 24 hours - tournaments change rarely
-      cacheTime: 1000 * 60 * 60 * 48, // 48 hours - keep in cache
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  );
+  const { data: tournaments = [], isLoading } = useQuery({
+    queryKey: ['tournaments', tourFilter],
+    queryFn: () => getTournaments({ tour: tourFilter }),
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours - tournaments change rarely
+    gcTime: 1000 * 60 * 60 * 48, // 48 hours - keep in cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
   if (isLoading) return <div className="p-6">Loading tournaments...</div>;
 
