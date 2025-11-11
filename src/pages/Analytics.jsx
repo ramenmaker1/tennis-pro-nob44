@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import DeprecationNotice from '@/components/DeprecationNotice';
 import {
   ResponsiveContainer,
   LineChart,
@@ -42,6 +43,12 @@ export default function Analytics() {
           predictions.
         </p>
       </div>
+
+      <DeprecationNotice 
+        newPage="LiveAnalysis"
+        newPageName="Live & Analysis"
+        message="Analytics and learning metrics will be integrated into the Learning Dashboard tab (coming soon)."
+      />
 
       {isError && (
         <Alert variant="destructive">

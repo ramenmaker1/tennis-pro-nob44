@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Calendar, Radio } from 'lucide-react';
 import { getCurrentClient } from '@/data/dataSourceStore';
 import { enrichMatchesWithLocalPlayers } from '@/utils/playerMatcher';
+import DeprecationNotice from '@/components/DeprecationNotice';
 
 export default function LiveGames() {
   const [activeTab, setActiveTab] = useState('live');
@@ -86,6 +87,12 @@ export default function LiveGames() {
           Live data from Sofascore API • Refreshes every 5 minutes
         </p>
       </div>
+
+      <DeprecationNotice 
+        newPage="LiveAnalysis"
+        newPageName="Live & Analysis"
+        message="Live and upcoming matches are now integrated with predictions in the Live & Analysis tab."
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">

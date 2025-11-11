@@ -20,6 +20,7 @@ import { PredictionFeedback } from '../components/ml/PredictionFeedback';
 import { getCurrentClient } from '../data/dataSourceStore';
 import { getLiveMatches } from '../services/tennisDataService';
 import { predictMatches } from '../services/predictionService';
+import DeprecationNotice from '../components/DeprecationNotice';
 
 export default function Predictions() {
   const [selectedPrediction, setSelectedPrediction] = useState(null);
@@ -172,6 +173,12 @@ export default function Predictions() {
             : 'View and analyze all match predictions across different models'}
         </p>
       </div>
+
+      <DeprecationNotice 
+        newPage="Simulator"
+        newPageName="Simulator"
+        message="Live match predictions are now available in the Simulator and Live & Analysis tabs with an improved interface."
+      />
 
       <Card className="shadow-md bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
         <CardContent className="p-4">
