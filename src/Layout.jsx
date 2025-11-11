@@ -2,213 +2,150 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
-  LayoutDashboard,
-  Users,
-  TrendingUp,
-  BarChart3,
   Target,
-  Brain,
-  Upload,
-  Shield,
-  FileText,
-  HelpCircle,
-  CalendarClock,
   Radio,
-  Trophy,
-  Activity,
-  LineChart,
+  Settings,
+  TrendingUp,
   Menu,
+  X,
+  HelpCircle,
+  FileText,
 } from 'lucide-react';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import ErrorBoundary from './components/ErrorBoundary';
 import { DataSourceSelector } from '@/components/DataSourceSelector';
 import ThemeToggle from './components/ThemeToggle';
 import ApiUsageStats from './components/ApiUsageStats';
 
-const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard', group: 'navigation' },
-  { name: 'Live Games', icon: Radio, path: 'LiveGames', group: 'navigation' },
-  { name: 'Top Players', icon: Trophy, path: 'TopPlayers', group: 'navigation' },
-  { name: 'Tournaments', icon: Trophy, path: 'Tournaments', group: 'navigation' },
-  { name: 'Live Players', icon: Activity, path: 'LivePlayers', group: 'navigation' },
-  { name: 'Data Analysis', icon: LineChart, path: 'DataAnalysis', group: 'navigation' },
-  { name: 'Players', icon: Users, path: 'Players', group: 'navigation' },
-  { name: 'Match Analysis', icon: TrendingUp, path: 'MatchAnalysis', group: 'navigation' },
-  { name: 'Predictions', icon: Target, path: 'Predictions', group: 'navigation' },
-  { name: 'Analytics', icon: BarChart3, path: 'Analytics', group: 'navigation' },
-  { name: 'Match History', icon: CalendarClock, path: 'MatchHistory', group: 'navigation' },
-  { name: 'ML Dashboard', icon: Brain, path: 'MLDashboard', group: 'navigation' },
-  { name: 'Bulk Import', icon: Upload, path: 'BulkImport', group: 'admin' },
-  { name: 'Data Quality', icon: Shield, path: 'DataQuality', group: 'admin' },
-  { name: 'Compliance', icon: FileText, path: 'Compliance', group: 'admin' },
-  { name: 'Help', icon: HelpCircle, path: 'Help', group: 'admin' },
+// Simplified 3-tab navigation structure
+const mainTabs = [
+  { 
+    name: 'SIMULATOR', 
+    icon: Target, 
+    path: 'Simulator', 
+    emoji: '🎾',
+    description: 'Core prediction engine'
+  },
+  { 
+    name: 'LIVE & ANALYSIS', 
+    icon: Radio, 
+    path: 'LiveAnalysis', 
+    emoji: '📡',
+    description: 'Real-time tracking & learning'
+  },
+  { 
+    name: 'SETTINGS', 
+    icon: Settings, 
+    path: 'Settings', 
+    emoji: '⚙️',
+    description: 'Players, models & data sources'
+  },
+];
+
+// Quick access links (footer)
+const footerLinks = [
+  { name: 'Help', icon: HelpCircle, path: 'Help' },
+  { name: 'Compliance', icon: FileText, path: 'Compliance' },
 ];
 
 export default function Layout({ children }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
-  const navigationGroupItems = navItems.filter((item) => item.group === 'navigation');
-  const adminGroupItems = navItems.filter((item) => item.group === 'admin');
+  const currentPath = location.pathname.split('/').pop() || 'Simulator';
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
-        {/* TOP HEADER NAVIGATION - Desktop */}
-        <header className="hidden md:block bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
-          <div className="px-6 py-4">
+      <div className="min-h-screen flex flex-col bg-gray-950">
+        
+        {/* TOP NAVIGATION BAR */}
+        <header className="bg-gray-900 border-b-2 border-yellow-400 border-opacity-30 sticky top-0 z-50">
+          <div className="px-4 lg:px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                {/* Logo */}
-                <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-slate-900 dark:text-slate-100 text-lg">TennisPro</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Match Analytics</p>
-                  </div>
-                </Link>
-
-                {/* Main Navigation */}
-                <nav className="flex items-center gap-1">
-                  {navigationGroupItems.map((item) => {
-                    const itemUrl = createPageUrl(item.path);
-                    const isActive = location.pathname === itemUrl;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={itemUrl}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                          isActive
-                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span className="hidden lg:inline">{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              {/* Right side: Data Source + Theme Toggle */}
-              <div className="flex items-center gap-3">
-                <DataSourceSelector />
-                <ThemeToggle />
-              </div>
-            </div>
-
-            {/* Admin Tools - Secondary Row */}
-            <div className="flex items-center gap-1 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-3">
-                Admin
-              </span>
-              {adminGroupItems.map((item) => {
-                const itemUrl = createPageUrl(item.path);
-                const isActive = location.pathname === itemUrl;
-                return (
-                  <Link
-                    key={item.name}
-                    to={itemUrl}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 ${
-                      isActive
-                        ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    <item.icon className="w-3 h-3" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </header>
-
-        {/* MOBILE HEADER */}
-        <header className="md:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
+              
+              {/* Logo */}
+              <Link to={createPageUrl('Simulator')} className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/50">
+                  <TrendingUp className="w-7 h-7 text-black" />
                 </div>
-                <h2 className="font-bold text-slate-900 dark:text-slate-100">TennisPro</h2>
+                <div>
+                  <h1 className="font-black text-yellow-400 text-xl tracking-tight">TennisPro</h1>
+                  <p className="text-xs text-gray-400">AI Prediction Engine</p>
+                </div>
               </Link>
-              <div className="flex items-center gap-2">
+
+              {/* Desktop Navigation - 3 Main Tabs */}
+              <nav className="hidden lg:flex items-center gap-2">
+                {mainTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = currentPath === tab.path;
+                  
+                  return (
+                    <Link
+                      key={tab.path}
+                      to={createPageUrl(tab.path)}
+                      className={`
+                        flex items-center gap-3 px-6 py-3 rounded-xl font-bold text-sm transition-all
+                        ${isActive 
+                          ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg shadow-yellow-500/50' 
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-yellow-400 border-2 border-gray-700'
+                        }
+                      `}
+                    >
+                      <span className="text-xl">{tab.emoji}</span>
+                      <span>{tab.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Right Side Actions */}
+              <div className="hidden lg:flex items-center gap-4">
+                <DataSourceSelector />
                 <ThemeToggle />
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
-                >
-                  <Menu className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                </button>
               </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
             </div>
 
-            {/* Mobile Menu Dropdown */}
+            {/* Mobile Navigation */}
             {mobileMenuOpen && (
-              <div className="mt-3 pb-2 space-y-1">
-                <DataSourceSelector />
-                <div className="mt-2 space-y-1">
-                  {navigationGroupItems.map((item) => {
-                    const itemUrl = createPageUrl(item.path);
-                    const isActive = location.pathname === itemUrl;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={itemUrl}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
-                          isActive
-                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
-                            : 'text-slate-600 dark:text-slate-400'
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase px-3">
-                    Admin Tools
-                  </span>
-                  <div className="mt-2 space-y-1">
-                    {adminGroupItems.map((item) => {
-                      const itemUrl = createPageUrl(item.path);
-                      const isActive = location.pathname === itemUrl;
-                      return (
-                        <Link
-                          key={item.name}
-                          to={itemUrl}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
-                            isActive
-                              ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium'
-                              : 'text-slate-600 dark:text-slate-400'
-                          }`}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.name}</span>
-                        </Link>
-                      );
-                    })}
+              <div className="lg:hidden mt-4 pb-4 space-y-2 border-t border-gray-800 pt-4">
+                {mainTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = currentPath === tab.path;
+                  
+                  return (
+                    <Link
+                      key={tab.path}
+                      to={createPageUrl(tab.path)}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all
+                        ${isActive 
+                          ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-black' 
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                        }
+                      `}
+                    >
+                      <span className="text-xl">{tab.emoji}</span>
+                      <div>
+                        <div>{tab.name}</div>
+                        <div className="text-xs opacity-70">{tab.description}</div>
+                      </div>
+                    </Link>
+                  );
+                })}
+                
+                <div className="pt-4 space-y-3 border-t border-gray-800 mt-4">
+                  <DataSourceSelector />
+                  <div className="flex items-center justify-between">
+                    <ThemeToggle />
                   </div>
                 </div>
               </div>
@@ -217,9 +154,32 @@ export default function Layout({ children }) {
         </header>
 
         {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1">
           {children}
         </main>
+
+        {/* FOOTER */}
+        <footer className="bg-gray-900 border-t-2 border-yellow-400 border-opacity-30 py-6">
+          <div className="px-4 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+              <div>
+                © 2025 TennisPro AI • Powered by Machine Learning
+              </div>
+              <div className="flex items-center gap-6">
+                {footerLinks.map((link) => (
+                  <Link 
+                    key={link.path}
+                    to={createPageUrl(link.path)} 
+                    className="hover:text-yellow-400 transition-colors flex items-center gap-2"
+                  >
+                    <link.icon className="w-4 h-4" />
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </footer>
 
         {/* API Usage Stats Widget */}
         <ApiUsageStats />

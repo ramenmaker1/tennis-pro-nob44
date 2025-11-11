@@ -1,6 +1,12 @@
 import { lazy } from 'react';
 import Layout from './Layout.jsx';
 
+// New primary pages
+const Simulator = lazy(() => import('./pages/Simulator'));
+const LiveAnalysis = lazy(() => import('./pages/LiveAnalysis'));
+const Settings = lazy(() => import('./pages/Settings'));
+
+// Legacy pages (kept for backward compatibility)
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const LiveGames = lazy(() => import('./pages/LiveGames'));
 const TopPlayers = lazy(() => import('./pages/TopPlayers'));
@@ -20,6 +26,12 @@ const DataQuality = lazy(() => import('./pages/DataQuality'));
 const Help = lazy(() => import('./pages/Help'));
 
 export const PAGES = {
+  // New primary pages
+  Simulator: Simulator,
+  LiveAnalysis: LiveAnalysis,
+  Settings: Settings,
+  
+  // Legacy pages
   Dashboard: Dashboard,
   LiveGames: LiveGames,
   TopPlayers: TopPlayers,
@@ -40,7 +52,7 @@ export const PAGES = {
 };
 
 export const pagesConfig = {
-  mainPage: 'Dashboard',
+  mainPage: 'Simulator', // Changed from Dashboard to Simulator
   Pages: PAGES,
   Layout: Layout,
 };
