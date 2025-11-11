@@ -11,21 +11,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3, Download, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import ProbabilityChart from '../components/match/ProbabilityChart';
 import { exportPredictionsToJSON, exportPredictionsToCSV } from '../utils/exportData';
 import { toast } from 'sonner';
 import { PredictionFeedback } from '../components/ml/PredictionFeedback';
 import { getCurrentClient } from '../data/dataSourceStore';
+import { getLiveMatches } from '../services/tennisDataService';
+import { predictMatches } from '../services/predictionService';
 
 export default function Predictions() {
   const [selectedPrediction, setSelectedPrediction] = useState(null);
   const [modelFilter, setModelFilter] = useState('all');
   const [confidenceFilter, setConfidenceFilter] = useState('all');
+  const [dataSource, setDataSource] = useState('live'); // 'live' or 'database'
+
+  // Fetch live matches for predictions
+  const { data: liveMatches = [], isLoading: liveLoading } = useQuery({
+    queryKey: ['live-matches'],
+    queryFn: async () => {
+      try {
+        return await getLiveMatches();
+      } catch (error) {
+        console.warn('Failed to load live matches:', error);
+        return [];
+      }
+    },
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    initialData: [],
+    retry: false,
+  });
 
   const { data: predictions = [], isLoading } = useQuery({
-    queryKey: ['predictions'],
+    queryKey: ['predictions', 'database'],
     queryFn: async () => {
       try {
         const client = getCurrentClient();
@@ -36,6 +55,7 @@ export default function Predictions() {
         return [];
       }
     },
+    enabled: dataSource === 'database',
     initialData: [],
     retry: false,
   });
@@ -72,19 +92,46 @@ export default function Predictions() {
     retry: false,
   });
 
+  // Generate predictions for live matches
+  const livePredictions = useMemo(() => {
+    if (dataSource !== 'live' || liveMatches.length === 0 || players.length === 0) {
+      return [];
+    }
+    return predictMatches(liveMatches, players);
+  }, [liveMatches, players, dataSource]);
+
+  // Combine database and live predictions
+  const allPredictions = dataSource === 'live' ? livePredictions : predictions;
+
   const filteredPredictions = useMemo(() => {
-    return predictions.filter((pred) => {
+    return allPredictions.filter((pred) => {
       if (modelFilter !== 'all' && pred.model_type !== modelFilter) return false;
       if (confidenceFilter !== 'all' && pred.confidence_level !== confidenceFilter) return false;
       return true;
     });
-  }, [predictions, modelFilter, confidenceFilter]);
+  }, [allPredictions, modelFilter, confidenceFilter]);
 
   const getPredictionDetails = (prediction) => {
+    // For live predictions, data is already embedded
+    if (dataSource === 'live') {
+      return {
+        match: prediction.match,
+        player1: prediction.player1,
+        player2: prediction.player2,
+        winner: prediction.player1_win_probability > prediction.player2_win_probability 
+          ? prediction.player1 
+          : prediction.player2,
+      };
+    }
+    
+    // For database predictions, look up related data
     const match = matches.find((m) => m.id === prediction.match_id);
+    if (!match) return { match: null, player1: null, player2: null, winner: null };
+    
     const player1 = players.find((p) => p.id === match?.player1_id);
     const player2 = players.find((p) => p.id === match?.player2_id);
     const winner = players.find((p) => p.id === prediction.predicted_winner_id);
+    
     return { match, player1, player2, winner };
   };
 
@@ -98,7 +145,7 @@ export default function Predictions() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || liveLoading) {
     return (
       <div className="p-6 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
         <div className="animate-pulse">
@@ -119,9 +166,40 @@ export default function Predictions() {
       <div>
         <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">Predictions</h1>
         <p className="text-slate-500 mt-2">
-          View and analyze all match predictions across different models
+          {dataSource === 'live' 
+            ? 'AI-powered predictions for live and upcoming matches'
+            : 'View and analyze all match predictions across different models'}
         </p>
       </div>
+
+      <Card className="shadow-md bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              <div>
+                <div className="font-medium text-slate-900">
+                  {dataSource === 'live' ? 'Live Match Predictions' : 'Database Predictions'}
+                </div>
+                <div className="text-sm text-slate-600">
+                  {dataSource === 'live' 
+                    ? `${livePredictions.length} predictions generated from ${liveMatches.length} matches`
+                    : `${predictions.length} stored predictions`}
+                </div>
+              </div>
+            </div>
+            <Select value={dataSource} onValueChange={setDataSource}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="live">Live Matches</SelectItem>
+                <SelectItem value="database">Database</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="shadow-md">
         <CardHeader>
@@ -191,8 +269,8 @@ export default function Predictions() {
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="flex items-center gap-2">
-                            {player1.display_name || player1.name} vs{' '}
-                            {player2.display_name || player2.name}
+                            {player1?.display_name || player1?.name || 'Player 1'} vs{' '}
+                            {player2?.display_name || player2?.name || 'Player 2'}
                             {prediction.was_correct === true && (
                               <Badge variant="success">Correct</Badge>
                             )}
@@ -201,8 +279,8 @@ export default function Predictions() {
                             )}
                           </CardTitle>
                           <div className="text-sm text-slate-500 mt-1">
-                            {match.tournament_name} • {match.surface} •{' '}
-                            {format(new Date(match.scheduled_date), 'MMM d, yyyy')}
+                            {match?.tournament_name || 'Tournament'} • {match?.surface || 'Unknown'} •{' '}
+                            {match?.scheduled_date ? format(new Date(match.scheduled_date), 'MMM d, yyyy') : 'Date TBD'}
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -231,18 +309,18 @@ export default function Predictions() {
                             <div className="flex items-center gap-4">
                               <div>
                                 <div className="text-sm font-medium">
-                                  {player1.display_name || player1.name}
+                                  {player1?.display_name || player1?.name || 'Player 1'}
                                 </div>
                                 <div className="text-2xl font-bold text-emerald-600">
-                                  {prediction.player1_win_probability?.toFixed(1)}%
+                                  {prediction.player1_win_probability?.toFixed(1) || 0}%
                                 </div>
                               </div>
                               <div>
                                 <div className="text-sm font-medium">
-                                  {player2.display_name || player2.name}
+                                  {player2?.display_name || player2?.name || 'Player 2'}
                                 </div>
                                 <div className="text-2xl font-bold text-orange-600">
-                                  {prediction.player2_win_probability?.toFixed(1)}%
+                                  {prediction.player2_win_probability?.toFixed(1) || 0}%
                                 </div>
                               </div>
                             </div>
@@ -264,8 +342,8 @@ export default function Predictions() {
                           <>
                             <ProbabilityChart
                               data={prediction.probability_chart_data || []}
-                              player1Name={player1.display_name || player1.name}
-                              player2Name={player2.display_name || player2.name}
+                              player1Name={player1?.display_name || player1?.name || 'Player 1'}
+                              player2Name={player2?.display_name || player2?.name || 'Player 2'}
                             />
                             <PredictionFeedback
                               prediction={prediction}
@@ -289,7 +367,11 @@ export default function Predictions() {
             <BarChart3 className="w-12 h-12 mx-auto text-slate-400" />
             <h3 className="text-lg font-medium text-slate-900 mt-4">No predictions found</h3>
             <p className="text-slate-500 mt-1">
-              {predictions.length === 0
+              {dataSource === 'live' && liveMatches.length === 0
+                ? 'No live matches available. Check back during tournament hours.'
+                : dataSource === 'live' && players.length === 0
+                ? 'Import players first to generate predictions for live matches.'
+                : allPredictions.length === 0
                 ? 'Start by analyzing some matches to generate predictions'
                 : 'Try adjusting your filters to see more predictions'}
             </p>
