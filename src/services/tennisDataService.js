@@ -22,7 +22,7 @@
  * - VITE_TENNIS_API_PROVIDER (optional)
  */
 
-const API_KEY = import.meta.env.VITE_TENNIS_API_KEY;
+const API_KEY = import.meta.env.VITE_TENNIS_API_KEY || 'c4da663c6emshf08c4503b1a7366p148028jsn4fce0daf017e';
 const API_HOST = import.meta.env.VITE_TENNIS_API_HOST || 'tennis-api-atp-wta-itf.p.rapidapi.com';
 const API_PROVIDER = import.meta.env.VITE_TENNIS_API_PROVIDER || 'rapidapi';
 
