@@ -2,18 +2,21 @@
  * Tennis Data Service - Multi-source tennis data with intelligent fallbacks
  * 
  * Data Sources (Priority Order):
- * 1. RapidAPI Tennis (Primary - requires key)
- * 2. Sofascore Public API (Free - no key required)
- * 3. TheSportsDB (Free - limited data)
- * 4. Mock Data (Always available)
+ * 1. Pinnacle Odds API (Betting odds & live data)
+ * 2. RapidAPI Tennis (Primary - requires key)
+ * 3. Sofascore Public API (Free - no key required)
+ * 4. TheSportsDB (Free - limited data)
+ * 5. Mock Data (Always available)
  * 
  * Features:
  * - Automatic fallback on API failures
  * - Request conservation (20/day limit)
  * - Aggressive caching
  * - Unified data normalization
+ * - Live odds integration
  * 
  * Environment variables:
+ * - VITE_PINNACLE_API_KEY (optional - enables Pinnacle Odds)
  * - VITE_TENNIS_API_KEY (optional - enables RapidAPI)
  * - VITE_TENNIS_API_HOST (optional)
  * - VITE_TENNIS_API_PROVIDER (optional)
@@ -23,8 +26,13 @@ const API_KEY = import.meta.env.VITE_TENNIS_API_KEY;
 const API_HOST = import.meta.env.VITE_TENNIS_API_HOST || 'tennis-api-atp-wta-itf.p.rapidapi.com';
 const API_PROVIDER = import.meta.env.VITE_TENNIS_API_PROVIDER || 'rapidapi';
 
+// Pinnacle Odds API configuration
+const PINNACLE_API_KEY = import.meta.env.VITE_PINNACLE_API_KEY || 'c4da663c6emshf08c4503b1a7366p148028jsn4fce0daf017e';
+const PINNACLE_HOST = 'pinnacle-odds.p.rapidapi.com';
+const TENNIS_SPORT_ID = 33; // Tennis sport ID in Pinnacle
+
 // Mock data fallback when no API key is configured
-const MOCK_MODE = !API_KEY;
+const MOCK_MODE = !API_KEY && !PINNACLE_API_KEY;
 
 // Available free data sources (no API key required)
 const FREE_SOURCES = {
@@ -88,13 +96,21 @@ function incrementRequestCount() {
 
 /**
  * Multi-source fetch with automatic fallback
- * Tries sources in order: RapidAPI → Sofascore → TheSportsDB → Mock
+ * Tries sources in order: Pinnacle → RapidAPI → Sofascore → TheSportsDB → Mock
  */
 async function fetchWithFallback(endpoint, dataType) {
   const sources = [];
   
+  // Add Pinnacle if available for live/scheduled matches
+  if (PINNACLE_API_KEY && (dataType === 'live' || dataType === 'scheduled')) {
+    sources.push({
+      name: 'Pinnacle',
+      fetch: () => fetchPinnacleMatches(dataType),
+    });
+  }
+  
   // Add RapidAPI if available and quota allows
-  if (!MOCK_MODE && checkRequestLimit()) {
+  if (API_KEY && checkRequestLimit()) {
     sources.push({
       name: 'RapidAPI',
       fetch: () => fetchRapidAPI(endpoint),
@@ -153,6 +169,50 @@ async function fetchRapidAPI(endpoint) {
   }
 
   return await response.json();
+}
+
+/**
+ * Fetch from Pinnacle Odds API (requires API key)
+ */
+async function fetchPinnacle(endpoint) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-RapidAPI-Key': PINNACLE_API_KEY,
+    'X-RapidAPI-Host': PINNACLE_HOST,
+  };
+
+  const url = `https://${PINNACLE_HOST}${endpoint}`;
+
+  const response = await fetch(url, { headers });
+  
+  if (!response.ok) {
+    throw new Error(`Pinnacle API error: ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Get tennis matches with odds from Pinnacle
+ */
+async function fetchPinnacleMatches(type = 'live') {
+  try {
+    // Get tennis events with odds
+    let endpoint;
+    if (type === 'live') {
+      // Get live matches with odds
+      endpoint = `/kit/v1/markets?sport_id=${TENNIS_SPORT_ID}&is_have_odds=true`;
+    } else {
+      // Get upcoming matches
+      endpoint = `/kit/v1/markets?sport_id=${TENNIS_SPORT_ID}&is_have_odds=true`;
+    }
+    
+    const data = await fetchPinnacle(endpoint);
+    return data;
+  } catch (error) {
+    console.warn('Pinnacle API fetch failed:', error.message);
+    throw error;
+  }
 }
 
 /**
@@ -223,16 +283,32 @@ function getTodayDate() {
  */
 export async function getLiveMatches() {
   console.log('🎾 getLiveMatches() called');
-  console.log('  API_KEY configured:', !!API_KEY);
+  console.log('  PINNACLE_API_KEY configured:', !!PINNACLE_API_KEY);
+  console.log('  TENNIS_API_KEY configured:', !!API_KEY);
   console.log('  MOCK_MODE:', MOCK_MODE);
   console.log('  Daily requests:', `${REQUEST_STATS.today}/${REQUEST_STATS.dailyLimit}`);
   
   const data = await fetchWithFallback('/tennis/v2/atp/live', 'live');
-  const normalized = normalizeMatches(data, 'sofascore');
+  
+  // Detect source and normalize accordingly
+  let source = 'sofascore';
+  if (Array.isArray(data)) {
+    source = 'pinnacle';
+  } else if (data?.events) {
+    source = 'sofascore';
+  } else if (data?.matches || data?.data) {
+    source = 'rapidapi';
+  }
+  
+  console.log('  Data source used:', source);
+  const normalized = normalizeMatches(data, source);
   
   console.log('  Matches returned:', normalized.length);
   if (normalized.length > 0) {
     console.log('  First match:', normalized[0]);
+    if (normalized[0].odds) {
+      console.log('  ✨ Odds available!', normalized[0].odds);
+    }
   }
   
   return normalized;
@@ -243,7 +319,18 @@ export async function getLiveMatches() {
  */
 export async function getUpcomingMatches() {
   const data = await fetchWithFallback('/tennis/v2/atp/schedule', 'scheduled');
-  return normalizeMatches(data, 'sofascore');
+  
+  // Detect source
+  let source = 'sofascore';
+  if (Array.isArray(data)) {
+    source = 'pinnacle';
+  } else if (data?.events) {
+    source = 'sofascore';
+  } else if (data?.matches || data?.data) {
+    source = 'rapidapi';
+  }
+  
+  return normalizeMatches(data, source);
 }
 
 /**
@@ -373,8 +460,32 @@ export async function searchPlayers(query, tour = 'all') {
 function normalizeMatches(data, source = 'rapidapi') {
   let matches = [];
   
+  // Handle Pinnacle format
+  if (source === 'pinnacle' && Array.isArray(data)) {
+    matches = data.map(event => ({
+      id: event.event_id || event.id,
+      tournament_name: event.league?.name || event.parent?.name || 'Tennis Match',
+      round: 'Live', // Pinnacle doesn't provide round info
+      surface: 'hard', // Default, Pinnacle doesn't provide surface
+      player_a: event.home || event.participants?.[0]?.name || 'Player 1',
+      player_b: event.away || event.participants?.[1]?.name || 'Player 2',
+      player_a_id: event.home_id || event.participants?.[0]?.id,
+      player_b_id: event.away_id || event.participants?.[1]?.id,
+      score: event.scores || event.current_score || '',
+      status: event.is_live ? 'live' : 'scheduled',
+      start_time: event.starts ? new Date(event.starts).toISOString() : null,
+      is_live: event.is_live || false,
+      // Odds data (Pinnacle specialty)
+      odds: event.periods?.[0]?.money_line ? {
+        player_a_odds: event.periods[0].money_line.home,
+        player_b_odds: event.periods[0].money_line.away,
+        spread: event.periods[0].spreads?.[0],
+        total: event.periods[0].totals?.[0],
+      } : null,
+    }));
+  }
   // Handle Sofascore format
-  if (source === 'sofascore' && data?.events) {
+  else if (source === 'sofascore' && data?.events) {
     matches = data.events.map(e => ({
       id: e.id,
       tournament_name: e.tournament?.name || e.tournament?.uniqueTournament?.name || 'Unknown',
@@ -388,6 +499,7 @@ function normalizeMatches(data, source = 'rapidapi') {
       status: e.status?.description || e.status?.type || 'scheduled',
       start_time: e.startTimestamp ? new Date(e.startTimestamp * 1000).toISOString() : null,
       is_live: e.status?.type === 'inprogress',
+      odds: null,
     }));
   } 
   // Handle RapidAPI format
@@ -406,6 +518,7 @@ function normalizeMatches(data, source = 'rapidapi') {
       status: m.status || 'scheduled',
       start_time: m.start_time || m.scheduled,
       is_live: m.status === 'live' || m.status === 'inprogress',
+      odds: null,
     }));
   }
   
@@ -422,6 +535,7 @@ function normalizeMatches(data, source = 'rapidapi') {
     status: m.status,
     start_time: m.start_time,
     is_live: m.is_live,
+    odds: m.odds, // Include betting odds if available
   }));
 }
 
