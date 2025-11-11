@@ -45,6 +45,14 @@ const DEFAULT_COMPLIANCE_SOURCES: ComplianceSource[] = [
 const DEFAULT_SURFACES = ['hard', 'clay', 'grass'];
 const DEFAULT_TOURNAMENTS = ['Australian Open', 'French Open', 'Wimbledon', 'US Open'];
 
+// LocalStorage keys
+const STORAGE_KEYS = {
+  PLAYERS: 'tennis_pro_players',
+  MATCHES: 'tennis_pro_matches',
+  PREDICTIONS: 'tennis_pro_predictions',
+  ALIASES: 'tennis_pro_aliases',
+};
+
 export class LocalDataClient implements DataClient {
   private playersData: Player[] = [];
   private matchesData: Match[] = [];
@@ -117,15 +125,66 @@ export class LocalDataClient implements DataClient {
   };
 
   constructor() {
+    this.loadFromStorage();
     this.seed();
   }
 
+  /**
+   * Load data from localStorage
+   */
+  private loadFromStorage() {
+    try {
+      const savedPlayers = localStorage.getItem(STORAGE_KEYS.PLAYERS);
+      const savedMatches = localStorage.getItem(STORAGE_KEYS.MATCHES);
+      const savedPredictions = localStorage.getItem(STORAGE_KEYS.PREDICTIONS);
+      const savedAliases = localStorage.getItem(STORAGE_KEYS.ALIASES);
+
+      if (savedPlayers) {
+        this.playersData = JSON.parse(savedPlayers);
+        console.log(`✅ Loaded ${this.playersData.length} players from localStorage`);
+      }
+      if (savedMatches) {
+        this.matchesData = JSON.parse(savedMatches);
+      }
+      if (savedPredictions) {
+        this.predictionsData = JSON.parse(savedPredictions);
+      }
+      if (savedAliases) {
+        this.aliasData = JSON.parse(savedAliases);
+      }
+    } catch (error) {
+      console.warn('Failed to load from localStorage:', error);
+    }
+  }
+
+  /**
+   * Save data to localStorage
+   */
+  private saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.PLAYERS, JSON.stringify(this.playersData));
+      localStorage.setItem(STORAGE_KEYS.MATCHES, JSON.stringify(this.matchesData));
+      localStorage.setItem(STORAGE_KEYS.PREDICTIONS, JSON.stringify(this.predictionsData));
+      localStorage.setItem(STORAGE_KEYS.ALIASES, JSON.stringify(this.aliasData));
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+  }
+
   private seed() {
+    // Only seed if no data exists in storage
+    if (this.playersData.length > 0) {
+      console.log('📦 Using existing data from localStorage');
+      return;
+    }
+    
+    console.log('🌱 Seeding initial data...');
     const samplePlayers = buildSamplePlayers(14);
     samplePlayers.forEach((player) => this.createPlayer(player));
     this.seedMatches();
     this.seedCompliance();
     this.seedModelWeights();
+    this.saveToStorage();
   }
 
   private seedMatches() {
@@ -179,6 +238,7 @@ export class LocalDataClient implements DataClient {
       ...data,
     } as Player;
     this.playersData.unshift(player);
+    this.saveToStorage(); // Persist to localStorage
     return this.clone(player);
   }
 
@@ -196,6 +256,7 @@ export class LocalDataClient implements DataClient {
       ...data,
     } as Match;
     this.matchesData.unshift(match);
+    this.saveToStorage(); // Persist to localStorage
     return this.clone(match);
   }
 
@@ -215,6 +276,7 @@ export class LocalDataClient implements DataClient {
     if (match) {
       this.recordModelFeedbackFromPrediction(prediction, match);
     }
+    this.saveToStorage(); // Persist to localStorage
     return this.clone(prediction);
   }
 
@@ -260,6 +322,7 @@ export class LocalDataClient implements DataClient {
       created_at: now,
     };
     this.aliasData.unshift(alias);
+    this.saveToStorage(); // Persist to localStorage
     return this.clone(alias);
   }
 
@@ -269,6 +332,7 @@ export class LocalDataClient implements DataClient {
       throw new Error('Entity not found');
     }
     collection[index] = { ...collection[index], ...data };
+    this.saveToStorage(); // Persist changes
     return this.clone(collection[index]);
   }
 
@@ -276,6 +340,7 @@ export class LocalDataClient implements DataClient {
     const index = collection.findIndex((item) => item.id === id);
     if (index !== -1) {
       collection.splice(index, 1);
+      this.saveToStorage(); // Persist changes
     }
   }
 
