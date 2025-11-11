@@ -28,8 +28,18 @@ export default function Players() {
 
   const { data: players, isLoading } = useQuery({
     queryKey: ['players'],
-    queryFn: () => getCurrentClient().players.list('-created_date'),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.players?.list) return [];
+        return await client.players.list('-created_date');
+      } catch (error) {
+        console.warn('Failed to load players:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
   });
 
   const handleGenerateSampleData = async () => {
@@ -41,7 +51,7 @@ export default function Players() {
       await Promise.all(
         samplePlayers.map((player) => getCurrentClient().players.create(player))
       );
-      queryClient.invalidateQueries(['players']);
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       toast.success('Generated sample player data');
     } catch (error) {
       toast.error('Failed to generate sample data');
@@ -53,7 +63,7 @@ export default function Players() {
   const handleCreatePlayer = async (data) => {
     try {
       await getCurrentClient().players.create(data);
-      queryClient.invalidateQueries(['players']);
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);
       toast.success('Player created successfully');
     } catch (error) {
@@ -64,7 +74,7 @@ export default function Players() {
   const handleUpdatePlayer = async (id, data) => {
     try {
       await getCurrentClient().players.update(id, data);
-      queryClient.invalidateQueries(['players']);
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       setEditingPlayer(null);
       toast.success('Player updated successfully');
     } catch (error) {
@@ -75,7 +85,7 @@ export default function Players() {
   const handleDeletePlayer = async (id) => {
     try {
       await getCurrentClient().players.remove(id);
-      queryClient.invalidateQueries(['players']);
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       setSelectedPlayer(null);
       toast.success('Player deleted successfully');
     } catch (error) {

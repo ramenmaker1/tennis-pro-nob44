@@ -42,15 +42,35 @@ export default function MatchAnalysis() {
   // Get available players
   const { data: players } = useQuery({
     queryKey: ['players'],
-    queryFn: () => getCurrentClient().players.list(),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.players?.list) return [];
+        return await client.players.list();
+      } catch (error) {
+        console.warn('Failed to load players:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
   });
 
   // Query active model weights for ML prediction
   const { data: activeWeights } = useQuery({
     queryKey: ['model-weights', 'active'],
-    queryFn: () => getCurrentClient().modelWeights.list({ filters: { is_active: true } }),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.modelWeights?.list) return [];
+        return await client.modelWeights.list({ filters: { is_active: true } });
+      } catch (error) {
+        console.warn('Failed to load model weights:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
   });
 
   // Mutation for creating match

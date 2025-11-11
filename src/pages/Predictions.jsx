@@ -26,20 +26,50 @@ export default function Predictions() {
 
   const { data: predictions = [], isLoading } = useQuery({
     queryKey: ['predictions'],
-    queryFn: () => getCurrentClient().predictions.list('-created_date'),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.predictions?.list) return [];
+        return await client.predictions.list('-created_date');
+      } catch (error) {
+        console.warn('Failed to load predictions:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
   });
 
   const { data: matches = [] } = useQuery({
     queryKey: ['matches'],
-    queryFn: () => getCurrentClient().matches.list(),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.matches?.list) return [];
+        return await client.matches.list();
+      } catch (error) {
+        console.warn('Failed to load matches:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
   });
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
-    queryFn: () => getCurrentClient().players.list(),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.players?.list) return [];
+        return await client.players.list();
+      } catch (error) {
+        console.warn('Failed to load players:', error);
+        return [];
+      }
+    },
     initialData: [],
+    retry: false,
   });
 
   const filteredPredictions = useMemo(() => {

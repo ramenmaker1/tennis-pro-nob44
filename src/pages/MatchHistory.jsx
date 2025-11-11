@@ -26,17 +26,50 @@ export default function MatchHistory() {
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
-    queryFn: () => getCurrentClient().players.list(),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.players?.list) return [];
+        return await client.players.list();
+      } catch (error) {
+        console.warn('Failed to load players:', error);
+        return [];
+      }
+    },
+    initialData: [],
+    retry: false,
   });
 
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['matches'],
-    queryFn: () => getCurrentClient().matches.list('-utc_start'),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.matches?.list) return [];
+        return await client.matches.list('-utc_start');
+      } catch (error) {
+        console.warn('Failed to load matches:', error);
+        return [];
+      }
+    },
+    initialData: [],
+    retry: false,
   });
 
   const { data: predictions = [] } = useQuery({
     queryKey: ['predictions'],
-    queryFn: () => getCurrentClient().predictions.list(),
+    queryFn: async () => {
+      try {
+        const client = getCurrentClient();
+        if (!client?.predictions?.list) return [];
+        return await client.predictions.list();
+      } catch (error) {
+        console.warn('Failed to load predictions:', error);
+        return [];
+      }
+    },
+    initialData: [],
+    retry: false,
   });
 
   const getMatchPlayer = (id) => players.find((p) => p.id === id);
