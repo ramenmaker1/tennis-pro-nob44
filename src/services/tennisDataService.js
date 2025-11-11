@@ -96,7 +96,7 @@ function incrementRequestCount() {
 
 /**
  * Multi-source fetch with automatic fallback
- * Tries sources in order: Pinnacle → RapidAPI → Sofascore → TheSportsDB → Mock
+ * Tries sources in order: Pinnacle → RapidAPI → Sofascore → TheSportsDB → TennisLive.net → Mock
  */
 async function fetchWithFallback(endpoint, dataType) {
   const sources = [];
@@ -126,6 +126,10 @@ async function fetchWithFallback(endpoint, dataType) {
     {
       name: 'TheSportsDB',
       fetch: () => fetchSportsDB(dataType),
+    },
+    {
+      name: 'TennisLive.net',
+      fetch: () => fetchTennisLive(dataType),
     }
   );
   
@@ -268,6 +272,112 @@ async function fetchSportsDB(dataType) {
   }
 
   return await response.json();
+}
+
+/**
+ * Fetch live matches from TennisLive.net (web scraping fallback)
+ */
+async function fetchTennisLive(dataType) {
+  // Only supports live matches
+  if (dataType !== 'live') {
+    throw new Error('TennisLive.net only supports live matches');
+  }
+
+  try {
+    const response = await fetch('https://www.tennislive.net/tennis_livescore.php?t=live', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+    
+    // Parse matches from HTML (returns already normalized format)
+    const matches = parseTennisLiveHTML(html);
+    
+    // Return in format expected by normalizeMatches
+    return { matches, source: 'tennislive' };
+    
+  } catch (error) {
+    throw new Error(`TennisLive.net fetch failed: ${error.message}`);
+  }
+}
+
+/**
+ * Parse TennisLive.net HTML to extract match data
+ */
+function parseTennisLiveHTML(html) {
+  const matches = [];
+  const tbodyRegex = /<tbody id="b_(\d+)_(\d+)_(\d+)">([\s\S]*?)<\/tbody>/g;
+  
+  let tbodyMatch;
+  while ((tbodyMatch = tbodyRegex.exec(html)) !== null) {
+    const [, tournamentId, player1Id, player2Id, content] = tbodyMatch;
+    
+    // Skip if no match data (just header)
+    if (!content.includes('<td class="match')) continue;
+    
+    try {
+      // Extract tournament
+      const tournamentMatch = content.match(/<a[^>]*title="([^"]+)"[^>]*>([^<]+)<\/a>/);
+      const tournament = tournamentMatch ? tournamentMatch[2].trim() : 'Unknown';
+      
+      // Extract surface
+      const surfaceMatch = content.match(/title="([^"]*(?:Clay|hard|grass|carpet)[^"]*)"/i);
+      let surface = 'hard';
+      if (surfaceMatch) {
+        const s = surfaceMatch[1].toLowerCase();
+        if (s.includes('clay')) surface = 'clay';
+        else if (s.includes('grass')) surface = 'grass';
+      }
+      
+      // Extract players
+      const playerRegex = /<td class="match[^"]*"><a[^>]*>([^<]+)<\/a>/g;
+      const players = [...content.matchAll(playerRegex)];
+      if (players.length < 2) continue;
+      
+      const player1 = players[0][1].trim();
+      const player2 = players[1][1].trim();
+      
+      // Extract round
+      const roundMatch = content.match(/<div class="L_round">([^<]+)<\/div>/);
+      const round = roundMatch ? roundMatch[1].replace(/<[^>]+>/g, '').trim() : 'R1';
+      
+      // Check if live
+      const isLive = content.includes('class="set act') || content.includes('tennis_ball.gif');
+      
+      matches.push({
+        id: `tl-${tournamentId}-${player1Id}-${player2Id}`,
+        tournament_name: tournament,
+        tournament: tournament,
+        round: round,
+        surface: surface,
+        player_a: player1,
+        player_b: player2,
+        player1_name: player1,
+        player2_name: player2,
+        player_a_id: player1Id,
+        player_b_id: player2Id,
+        player1_id: player1Id,
+        player2_id: player2Id,
+        score: '',
+        status: isLive ? 'live' : 'scheduled',
+        is_live: isLive,
+        start_time: new Date().toISOString(),
+        odds: null,
+      });
+    } catch (e) {
+      // Skip malformed matches
+      continue;
+    }
+  }
+  
+  return matches;
 }
 
 /**
@@ -459,6 +569,17 @@ export async function searchPlayers(query, tour = 'all') {
 
 function normalizeMatches(data, source = 'rapidapi') {
   let matches = [];
+  
+  // Handle TennisLive.net format (already normalized)
+  if (source === 'tennislive' && data?.matches) {
+    return data.matches.map(m => ({
+      ...m,
+      player1_name: m.player_a,
+      player2_name: m.player_b,
+      player1_id: m.player_a_id,
+      player2_id: m.player_b_id,
+    }));
+  }
   
   // Handle Pinnacle format
   if (source === 'pinnacle' && Array.isArray(data)) {
