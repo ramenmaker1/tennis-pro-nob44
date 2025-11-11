@@ -2,7 +2,22 @@
  * Live Match Prediction Service
  * Generates predictions for live, upcoming, and scheduled matches
  * using player stats, surface data, and betting odds
+ * 
+ * Models available:
+ * - balanced: Multi-factor approach (original)
+ * - elo: ELO rating-based predictions
+ * - surface_expert: Surface expertise focus
+ * - ensemble: Combines all models (most accurate)
+ * - conservative: Higher confidence threshold
+ * - ml: Machine learning enhanced
  */
+
+import { 
+  predictWithElo, 
+  predictWithSurfaceExpertise, 
+  predictWithEnsemble,
+  getTournamentImportance 
+} from './advancedPredictions.js';
 
 /**
  * Calculate win probability based on multiple factors
@@ -151,9 +166,10 @@ function calculateFormScore(form) {
  * Generate predictions for multiple matches
  * @param {Array} matches - Array of match objects
  * @param {Array} players - Array of player objects
+ * @param {string} modelType - Model to use: 'balanced', 'elo', 'surface_expert', 'ensemble', 'conservative', 'ml'
  * @returns {Array} Predictions for all matches
  */
-export function predictMatches(matches, players) {
+export function predictMatches(matches, players, modelType = 'ensemble') {
   if (!matches || !players) return [];
   
   return matches.map(match => {
@@ -174,12 +190,33 @@ export function predictMatches(matches, players) {
       return null;
     }
     
-    const prediction = predictMatch(
-      player1,
-      player2,
-      match.surface,
-      match.odds
-    );
+    // Select prediction model
+    let prediction;
+    const matchContext = {
+      tournament: match.tournament_name || match.tournament,
+      round: match.round,
+      location: match.location,
+    };
+    
+    switch (modelType) {
+      case 'elo':
+        prediction = predictWithElo(player1, player2, match.surface, matchContext);
+        break;
+      case 'surface_expert':
+        prediction = predictWithSurfaceExpertise(player1, player2, match.surface);
+        break;
+      case 'ensemble':
+        prediction = predictWithEnsemble(player1, player2, match.surface, match.odds, matchContext);
+        break;
+      case 'conservative':
+        prediction = predictMatchConservative(player1, player2, match.surface, match.odds);
+        break;
+      case 'ml':
+        prediction = predictMatchML(player1, player2, match.surface, match.odds);
+        break;
+      default: // 'balanced'
+        prediction = predictMatch(player1, player2, match.surface, match.odds);
+    }
     
     return {
       id: `pred-${match.id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -189,6 +226,7 @@ export function predictMatches(matches, players) {
       player2,
       ...prediction,
       created_at: new Date().toISOString(),
+      tournament_importance: getTournamentImportance(match.tournament_name || match.tournament),
     };
   }).filter(Boolean);
 }

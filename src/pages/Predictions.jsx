@@ -26,6 +26,7 @@ export default function Predictions() {
   const [modelFilter, setModelFilter] = useState('all');
   const [confidenceFilter, setConfidenceFilter] = useState('all');
   const [dataSource, setDataSource] = useState('live'); // 'live' or 'database'
+  const [predictionModel, setPredictionModel] = useState('ensemble'); // Model selector
 
   // Fetch live matches for predictions
   const { data: liveMatches = [], isLoading: liveLoading } = useQuery({
@@ -97,8 +98,8 @@ export default function Predictions() {
     if (dataSource !== 'live' || liveMatches.length === 0 || players.length === 0) {
       return [];
     }
-    return predictMatches(liveMatches, players);
-  }, [liveMatches, players, dataSource]);
+    return predictMatches(liveMatches, players, predictionModel);
+  }, [liveMatches, players, dataSource, predictionModel]);
 
   // Combine database and live predictions
   const allPredictions = dataSource === 'live' ? livePredictions : predictions;
@@ -218,17 +219,46 @@ export default function Predictions() {
           </div>
         </CardHeader>
         <CardContent>
+          {dataSource === 'live' && (
+            <div className="mb-4 pb-4 border-b">
+              <Label htmlFor="prediction-model">Prediction Model</Label>
+              <Select value={predictionModel} onValueChange={setPredictionModel}>
+                <SelectTrigger id="prediction-model">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ensemble">🎯 Ensemble (Most Accurate)</SelectItem>
+                  <SelectItem value="elo">📊 ELO Rating</SelectItem>
+                  <SelectItem value="surface_expert">🎾 Surface Expert</SelectItem>
+                  <SelectItem value="balanced">⚖️ Balanced</SelectItem>
+                  <SelectItem value="conservative">🛡️ Conservative</SelectItem>
+                  <SelectItem value="ml">🤖 Machine Learning</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">
+                {predictionModel === 'ensemble' && 'Combines ELO, surface expertise, odds, and stats for highest accuracy'}
+                {predictionModel === 'elo' && 'Chess-style rating system with form adjustments'}
+                {predictionModel === 'surface_expert' && 'Focuses on surface-specific performance'}
+                {predictionModel === 'balanced' && 'Multi-factor approach using ranking, surface, and odds'}
+                {predictionModel === 'conservative' && 'Higher confidence threshold, fewer risky predictions'}
+                {predictionModel === 'ml' && 'Machine learning enhanced predictions'}
+              </p>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <Label htmlFor="model-filter">Model Type</Label>
+              <Label htmlFor="model-filter">Filter by Model</Label>
               <Select value={modelFilter} onValueChange={setModelFilter}>
                 <SelectTrigger id="model-filter">
                   <SelectValue placeholder="All Models" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Models</SelectItem>
-                  <SelectItem value="conservative">Conservative</SelectItem>
+                  <SelectItem value="ensemble">Ensemble</SelectItem>
+                  <SelectItem value="elo">ELO</SelectItem>
+                  <SelectItem value="surface_expert">Surface Expert</SelectItem>
                   <SelectItem value="balanced">Balanced</SelectItem>
+                  <SelectItem value="conservative">Conservative</SelectItem>
                   <SelectItem value="ml">Machine Learning</SelectItem>
                 </SelectContent>
               </Select>
