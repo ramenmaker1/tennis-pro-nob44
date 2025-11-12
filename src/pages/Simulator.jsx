@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,12 +28,14 @@ export default function Simulator() {
   const [prediction, setPrediction] = useState(null);
 
   // Fetch players
-  const { data: players = [] } = useQuery({
+  const { data: players = [], isLoading: playersLoading } = useQuery({
     queryKey: ['players'],
     queryFn: async () => {
       const client = getCurrentClient();
       if (!client?.players?.list) return [];
-      return await client.players.list();
+      const playersList = await client.players.list();
+      console.log('📊 Loaded players for simulator:', playersList.length);
+      return playersList;
     },
     initialData: [],
   });
@@ -77,6 +80,32 @@ export default function Simulator() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 max-w-7xl">
+        {/* No Players Warning */}
+        {players.length === 0 && !playersLoading && (
+          <div className="lg:col-span-2">
+            <Card className="bg-amber-900/30 border-amber-700 border-2">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">⚠️</span>
+                  <div>
+                    <h3 className="text-lg font-bold text-amber-400 mb-2">No Players in Database</h3>
+                    <p className="text-amber-200 mb-3">
+                      You need to import players before you can run simulations.
+                    </p>
+                    <Link 
+                      to="/Settings" 
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold px-6 py-3 rounded-xl hover:shadow-lg transition-all"
+                    >
+                      Go to Settings → Data Management
+                      <span>→</span>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Configuration Panel */}
         <Card className={cardClasses}>
           <CardHeader>

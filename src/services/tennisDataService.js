@@ -4,9 +4,12 @@
  * Data Sources (Priority Order):
  * 1. Pinnacle Odds API (Betting odds & live data)
  * 2. RapidAPI Tennis (Primary - requires key)
- * 3. Sofascore Public API (Free - no key required)
- * 4. TheSportsDB (Free - limited data)
- * 5. Mock Data (Always available)
+ * 3. Tennis Explorer (Free - HTML scraping, easy structure)
+ * 4. Sofascore Public API (Free - no key required)
+ * 5. FlashScore (Free - HTML scraping)
+ * 6. TheSportsDB (Free - limited data)
+ * 7. TennisLive.net (Free - HTML scraping)
+ * 8. Mock Data (Always available)
  * 
  * Features:
  * - Automatic fallback on API failures
@@ -14,6 +17,7 @@
  * - Aggressive caching
  * - Unified data normalization
  * - Live odds integration
+ * - Web scraping for free sources
  * 
  * Environment variables:
  * - VITE_PINNACLE_API_KEY (optional - enables Pinnacle Odds)
@@ -36,8 +40,11 @@ const MOCK_MODE = !API_KEY && !PINNACLE_API_KEY;
 
 // Available free data sources (no API key required)
 const FREE_SOURCES = {
+  TENNIS_EXPLORER: 'https://www.tennisexplorer.com',
   SOFASCORE: 'https://api.sofascore.com/api/v1',
+  FLASHSCORE: 'https://www.flashscore.com',
   SPORTSDB: 'https://www.thesportsdb.com/api/v1/json/3',
+  TENNISLIVE: 'https://www.tennislive.net',
 };
 
 // Request counter and limits
@@ -96,7 +103,7 @@ function incrementRequestCount() {
 
 /**
  * Multi-source fetch with automatic fallback
- * Tries sources in order: Pinnacle → RapidAPI → Sofascore → TheSportsDB → TennisLive.net → Mock
+ * Tries sources in order: Pinnacle → RapidAPI → Tennis Explorer → Sofascore → FlashScore → TheSportsDB → TennisLive.net → Mock
  */
 async function fetchWithFallback(endpoint, dataType) {
   const sources = [];
@@ -117,11 +124,19 @@ async function fetchWithFallback(endpoint, dataType) {
     });
   }
   
-  // Always try free sources
+  // Always try free sources in priority order
   sources.push(
+    {
+      name: 'Tennis Explorer',
+      fetch: () => fetchTennisExplorer(dataType),
+    },
     {
       name: 'Sofascore',
       fetch: () => fetchSofascore(dataType),
+    },
+    {
+      name: 'FlashScore',
+      fetch: () => fetchFlashScore(dataType),
     },
     {
       name: 'TheSportsDB',
@@ -381,6 +396,269 @@ function parseTennisLiveHTML(html) {
 }
 
 /**
+ * Fetch live matches from Tennis Explorer (web scraping - easiest HTML structure)
+ * Best for: Live scores, match times, player rankings, odds
+ */
+async function fetchTennisExplorer(dataType) {
+  try {
+    let url = 'https://www.tennisexplorer.com/';
+    
+    // Tennis Explorer has different pages for different data types
+    if (dataType === 'upcoming' || dataType === 'scheduled') {
+      url = 'https://www.tennisexplorer.com/matches/';
+    }
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+    const matches = parseTennisExplorerHTML(html, dataType);
+    
+    return { matches, source: 'tennisexplorer' };
+    
+  } catch (error) {
+    throw new Error(`Tennis Explorer fetch failed: ${error.message}`);
+  }
+}
+
+/**
+ * Parse Tennis Explorer HTML to extract match data
+ * Tennis Explorer has very clean table structure, easy to parse
+ */
+function parseTennisExplorerHTML(html, dataType) {
+  const matches = [];
+  
+  // Tennis Explorer uses clean table rows with class="result"
+  // Format: <tr class="result"> with player names, scores, times
+  const rowRegex = /<tr[^>]*class="[^"]*(?:result|head)[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
+  
+  let currentTournament = 'Unknown';
+  let currentSurface = 'hard';
+  
+  let rowMatch;
+  while ((rowMatch = rowRegex.exec(html)) !== null) {
+    const content = rowMatch[1];
+    
+    // Check if this is a tournament header
+    const tournamentMatch = content.match(/<a[^>]*>([^<]+(?:ATP|WTA|Challenger|ITF)[^<]*)<\/a>/i);
+    if (tournamentMatch) {
+      currentTournament = tournamentMatch[1].trim();
+      
+      // Try to detect surface from tournament name
+      const tournamentLower = currentTournament.toLowerCase();
+      if (tournamentLower.includes('clay') || tournamentLower.includes('roland garros')) {
+        currentSurface = 'clay';
+      } else if (tournamentLower.includes('grass') || tournamentLower.includes('wimbledon')) {
+        currentSurface = 'grass';
+      } else {
+        currentSurface = 'hard';
+      }
+      continue;
+    }
+    
+    // Extract player names from <td> cells
+    const playerCells = content.match(/<td[^>]*class="[^"]*t-name[^"]*"[^>]*>([\s\S]*?)<\/td>/gi);
+    if (!playerCells || playerCells.length < 2) continue;
+    
+    try {
+      // Extract player 1
+      const player1Match = playerCells[0].match(/>([^<]+(?:\([0-9]+\))?)\s*</);
+      if (!player1Match) continue;
+      let player1 = player1Match[1].trim();
+      
+      // Remove ranking numbers in parentheses
+      player1 = player1.replace(/\s*\([0-9]+\)\s*$/, '');
+      
+      // Extract player 2
+      const player2Match = playerCells[1].match(/>([^<]+(?:\([0-9]+\))?)\s*</);
+      if (!player2Match) continue;
+      let player2 = player2Match[1].trim();
+      player2 = player2.replace(/\s*\([0-9]+\)\s*$/, '');
+      
+      // Extract score if available
+      const scoreMatch = content.match(/<td[^>]*class="[^"]*score[^"]*"[^>]*>([^<]+)<\/td>/);
+      const score = scoreMatch ? scoreMatch[1].trim() : '';
+      
+      // Extract time if available
+      const timeMatch = content.match(/<td[^>]*class="[^"]*time[^"]*"[^>]*>([^<]+)<\/td>/);
+      const matchTime = timeMatch ? timeMatch[1].trim() : '';
+      
+      // Determine if live
+      const isLive = content.includes('live') || (score && !score.includes('Finished'));
+      
+      matches.push({
+        id: `te-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        tournament_name: currentTournament,
+        tournament: currentTournament,
+        round: 'Unknown',
+        surface: currentSurface,
+        player_a: player1,
+        player_b: player2,
+        player1_name: player1,
+        player2_name: player2,
+        score: score,
+        status: isLive ? 'live' : (score ? 'finished' : 'scheduled'),
+        is_live: isLive,
+        start_time: matchTime || new Date().toISOString(),
+        odds: null,
+      });
+    } catch (e) {
+      // Skip malformed matches
+      continue;
+    }
+  }
+  
+  return matches;
+}
+
+/**
+ * Fetch live matches from FlashScore (web scraping - similar to Sofascore)
+ * Best for: Real-time updates, point-by-point tracking
+ */
+async function fetchFlashScore(dataType) {
+  // Only supports live matches
+  if (dataType !== 'live') {
+    throw new Error('FlashScore scraping only supports live matches');
+  }
+
+  try {
+    const response = await fetch('https://www.flashscore.com/tennis/', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+    
+    // FlashScore is a React app, data might be in JSON format embedded in HTML
+    // Look for __INITIAL_STATE__ or similar data structures
+    const jsonMatch = html.match(/INITIAL_STATE__\s*=\s*({[\s\S]*?})\s*;/);
+    
+    if (jsonMatch) {
+      try {
+        const data = JSON.parse(jsonMatch[1]);
+        // Parse the JSON structure to extract matches
+        const matches = parseFlashScoreJSON(data);
+        return { matches, source: 'flashscore' };
+      } catch (e) {
+        // If JSON parsing fails, fall back to HTML parsing
+      }
+    }
+    
+    // Fallback to HTML parsing if JSON not found
+    const matches = parseFlashScoreHTML(html);
+    return { matches, source: 'flashscore' };
+    
+  } catch (error) {
+    throw new Error(`FlashScore fetch failed: ${error.message}`);
+  }
+}
+
+/**
+ * Parse FlashScore HTML (fallback method)
+ */
+function parseFlashScoreHTML(html) {
+  const matches = [];
+  
+  // FlashScore uses div-based layout with specific classes
+  // This is a simplified parser - may need adjustment based on actual HTML
+  const matchRegex = /<div[^>]*class="[^"]*event__match[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
+  
+  let matchBlock;
+  while ((matchBlock = matchRegex.exec(html)) !== null) {
+    const content = matchBlock[1];
+    
+    try {
+      // Extract player names
+      const playersMatch = content.matchAll(/<div[^>]*class="[^"]*participant[^"]*"[^>]*>([^<]+)<\/div>/gi);
+      const players = [...playersMatch];
+      
+      if (players.length < 2) continue;
+      
+      const player1 = players[0][1].trim();
+      const player2 = players[1][1].trim();
+      
+      // Extract score
+      const scoreMatch = content.match(/<div[^>]*class="[^"]*score[^"]*"[^>]*>([^<]+)<\/div>/);
+      const score = scoreMatch ? scoreMatch[1].trim() : '';
+      
+      matches.push({
+        id: `fs-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        tournament_name: 'Live Match',
+        tournament: 'Live Match',
+        round: 'Unknown',
+        surface: 'hard',
+        player_a: player1,
+        player_b: player2,
+        player1_name: player1,
+        player2_name: player2,
+        score: score,
+        status: 'live',
+        is_live: true,
+        start_time: new Date().toISOString(),
+        odds: null,
+      });
+    } catch (e) {
+      continue;
+    }
+  }
+  
+  return matches;
+}
+
+/**
+ * Parse FlashScore JSON data structure (preferred method)
+ */
+function parseFlashScoreJSON(data) {
+  const matches = [];
+  
+  // FlashScore JSON structure varies, this is a generic parser
+  // May need adjustment based on actual data structure
+  try {
+    // Common structure: data.events or data.matches or data.games
+    const events = data.events || data.matches || data.games || [];
+    
+    for (const event of events) {
+      if (!event.homeTeam || !event.awayTeam) continue;
+      
+      matches.push({
+        id: `fs-${event.id || Date.now()}`,
+        tournament_name: event.tournament?.name || 'Unknown',
+        tournament: event.tournament?.name || 'Unknown',
+        round: event.round || 'Unknown',
+        surface: event.surface || 'hard',
+        player_a: event.homeTeam.name,
+        player_b: event.awayTeam.name,
+        player1_name: event.homeTeam.name,
+        player2_name: event.awayTeam.name,
+        score: event.score || '',
+        status: event.status || 'live',
+        is_live: event.status === 'live',
+        start_time: event.startTime || new Date().toISOString(),
+        odds: null,
+      });
+    }
+  } catch (e) {
+    // Return empty if parsing fails
+  }
+  
+  return matches;
+}
+
+/**
  * Helper: Get today's date in YYYY-MM-DD format
  */
 function getTodayDate() {
@@ -569,6 +847,28 @@ export async function searchPlayers(query, tour = 'all') {
 
 function normalizeMatches(data, source = 'rapidapi') {
   let matches = [];
+  
+  // Handle Tennis Explorer format (already normalized)
+  if (source === 'tennisexplorer' && data?.matches) {
+    return data.matches.map(m => ({
+      ...m,
+      player1_name: m.player_a,
+      player2_name: m.player_b,
+      player1_id: m.player_a_id,
+      player2_id: m.player_b_id,
+    }));
+  }
+  
+  // Handle FlashScore format (already normalized)
+  if (source === 'flashscore' && data?.matches) {
+    return data.matches.map(m => ({
+      ...m,
+      player1_name: m.player_a,
+      player2_name: m.player_b,
+      player1_id: m.player_a_id,
+      player2_id: m.player_b_id,
+    }));
+  }
   
   // Handle TennisLive.net format (already normalized)
   if (source === 'tennislive' && data?.matches) {

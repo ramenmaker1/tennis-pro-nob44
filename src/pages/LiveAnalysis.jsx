@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Radio, Activity, TrendingUp, Clock, Target } from 'lucide-react';
 import { getCurrentClient } from '../data/dataSourceStore';
 import { predictMatches } from '../services/predictionService';
+import { getLiveMatches } from '../services/tennisDataService';
 
 const cardClasses = "bg-gray-900 rounded-2xl p-6 border-2 border-yellow-400 border-opacity-30";
 const headerClasses = "text-yellow-400 font-black text-xl mb-4";
@@ -13,15 +14,17 @@ const headerClasses = "text-yellow-400 font-black text-xl mb-4";
 export default function LiveAnalysis() {
   const [selectedTab, setSelectedTab] = useState('live');
 
-  // Fetch live matches
-  const { data: liveMatches = [], isLoading: loadingMatches } = useQuery({
+  // Fetch live matches directly from tennis data service
+  const { data: liveMatches = [], isLoading: loadingMatches, error: matchesError } = useQuery({
     queryKey: ['live-matches'],
     queryFn: async () => {
-      const client = getCurrentClient();
-      if (!client?.matches?.getLive) return [];
-      return await client.matches.getLive();
+      console.log('🎾 Fetching live matches...');
+      const matches = await getLiveMatches();
+      console.log('✅ Live matches fetched:', matches.length, matches);
+      return matches;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
+    retry: 2,
   });
 
   // Fetch players
@@ -123,6 +126,22 @@ export default function LiveAnalysis() {
             </div>
 
             {/* Live Matches List */}
+            {matchesError && (
+              <Card className="bg-red-900/30 border-red-700 border-2">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl">❌</span>
+                    <div>
+                      <h3 className="text-lg font-bold text-red-400 mb-2">Error Fetching Live Matches</h3>
+                      <p className="text-red-200 text-sm">
+                        {matchesError.message || 'Failed to load live matches. Please try again.'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             {loadingMatches ? (
               <Card className={cardClasses}>
                 <CardContent className="p-12 text-center text-gray-500">
